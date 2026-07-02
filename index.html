@@ -297,26 +297,8 @@
       </div>
     </div>
 
-    <!-- PAGE 3: Estilo -->
+    <!-- PAGE 3: Colores -->
     <div class="page" data-page="3">
-      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Qué estilo prefieres?</h2>
-      <p class="subtitle">Selecciona el que más te represente</p>
-      <div class="options-grid large">
-        <label class="option-box"><input type="radio" name="style" value="Clásico"><span class="style-icon">🏛️</span><span class="label">Clásico</span></label>
-        <label class="option-box"><input type="radio" name="style" value="Minimalista"><span class="style-icon">◻️</span><span class="label">Minimalista</span></label>
-        <label class="option-box"><input type="radio" name="style" value="Italiano"><span class="style-icon">🇮🇹</span><span class="label">Italiano</span></label>
-        <label class="option-box"><input type="radio" name="style" value="Moderno"><span class="style-icon">✦</span><span class="label">Moderno</span></label>
-        <label class="option-box"><input type="radio" name="style" value="Hotel cinco estrellas"><span class="style-icon">⭐</span><span class="label">Hotel 5 estrellas</span></label>
-      </div>
-      <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- PAGE 4: Colores -->
-    <div class="page" data-page="4">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
       <h2 class="font-display">¿Qué colores prefieres?</h2>
       <p class="subtitle">Puedes seleccionar más de uno</p>
@@ -357,17 +339,17 @@
     <!-- PAGE 6: Tipo de pijama -->
     <div class="page" data-page="6">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Qué tipo de pijama usas?</h2>
-      <p class="subtitle">Selecciona el estilo que prefieres</p>
+      <h2 class="font-display">¿Qué estilo de pijama usarías?</h2>
+      <p class="subtitle">Puedes seleccionar más de uno</p>
       <div class="options-grid large">
-        <label class="option-box"><input type="radio" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
       </div>
       <div class="nav-buttons">
         <button class="btn-back" onclick="prevPage()">← Atrás</button>
@@ -428,14 +410,6 @@
     const pages = document.querySelectorAll('.page');
     const totalPages = pages.length;
     const progressBar = document.getElementById('progressBar');
-
-    // Page order for navigation (excluding 'already' page)
-    const pageOrder = [0, 2, 3, 4, 5, 6, 7, 8, 9]; // indices in pages NodeList
-
-    function getPageIndex(n) {
-      // pages[0] = email, pages[1] = already, pages[2..9] = survey pages 1-8
-      return n;
-    }
 
     function showPage(n) {
       pages.forEach(p => p.classList.remove('active'));
@@ -541,10 +515,10 @@
         email: document.getElementById('emailInput').value,
         gender: document.querySelector('input[name="gender"]:checked')?.value || null,
         age_range: document.querySelector('input[name="age"]:checked')?.value || null,
-        style: document.querySelector('input[name="style"]:checked')?.value || null,
+        style: null,
         colors: Array.from(document.querySelectorAll('input[name="color"]:checked')).map(c => c.value),
         size: document.querySelector('input[name="size"]:checked')?.value || null,
-        pajama_type: document.querySelector('input[name="type"]:checked')?.value || null,
+        pajama_type: Array.from(document.querySelectorAll('input[name="type"]:checked')).map(c => c.value).join(', '),
         early_access: document.getElementById('earlyAccess').checked
       };
 
