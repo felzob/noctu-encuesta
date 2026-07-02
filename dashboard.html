@@ -256,18 +256,12 @@
 
     <!-- Correlación -->
     <h2 class="section-title">🧠 Tendencias y patrones detectados</h2>
-    <div class="chart-card" style="margin-bottom:1rem;">
-      <div id="trendInsights"></div>
-    </div>
-    <div class="chart-card" style="margin-bottom:2rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-        <h3 style="font-size:0.75rem;color:rgba(234,232,228,0.4);text-transform:uppercase;letter-spacing:0.08em;">Matriz tecnica (Cramer's V)</h3>
-        <button onclick="document.getElementById('matrixWrap').style.display = document.getElementById('matrixWrap').style.display === 'none' ? 'block' : 'none'" style="padding:0.3rem 0.7rem;background:rgba(196,205,212,0.05);border:1px solid rgba(196,205,212,0.15);border-radius:5px;color:rgba(234,232,228,0.5);font-size:0.65rem;cursor:pointer;">Mostrar / Ocultar</button>
-      </div>
-      <div id="matrixWrap" style="display:none;">
-        <p style="font-size:0.65rem;color:rgba(234,232,228,0.3);margin-bottom:0.75rem;">Valores entre 0 (sin relacion) y 1 (relacion perfecta)</p>
-        <div id="correlationMatrix"></div>
-      </div>
+    <div class="insights-grid" id="trendInsights"></div>
+
+    <h2 class="section-title">🔗 Matriz de correlacion (Cramer's V)</h2>
+    <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
+      <p style="font-size:0.65rem;color:rgba(234,232,228,0.3);margin-bottom:0.75rem;">Valores entre 0 (sin relacion) y 1 (relacion perfecta)</p>
+      <div id="correlationMatrix"></div>
     </div>
 
     <!-- Tabla de datos -->
@@ -892,14 +886,14 @@
 
       // Render
       if (insights.length === 0) {
-        container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.85rem;">Aun no hay suficientes datos para detectar patrones claros.</p>';
+        container.innerHTML = '<div class="insight-card"><div class="insight-value">Esperando mas respuestas...</div></div>';
         return;
       }
 
       container.innerHTML = insights.map(i => `
-        <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(196,205,212,0.05);">
-          <span style="font-size:1.2rem;">${i.icon}</span>
-          <p style="font-size:0.85rem;color:rgba(255,255,255,0.75);line-height:1.4;">${i.text}</p>
+        <div class="insight-card" style="text-align:center;">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">${i.icon}</div>
+          <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);line-height:1.5;">${i.text}</div>
         </div>
       `).join('');
     }
