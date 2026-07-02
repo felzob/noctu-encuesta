@@ -71,6 +71,13 @@
       color: var(--silver); font-size: 0.75rem; cursor: pointer;
     }
     .btn-logout:hover { border-color: #e57373; color: #e57373; }
+    .btn-export {
+      padding: 0.5rem 1rem; background: rgba(79,195,247,0.1);
+      border: 1px solid rgba(79,195,247,0.3); border-radius: 6px;
+      color: #4fc3f7; font-size: 0.75rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-export:hover { background: rgba(79,195,247,0.2); border-color: #4fc3f7; }
 
     /* KPIs */
     .kpi-grid {
@@ -177,7 +184,10 @@
         <h1>NOCTU — Focus Group Dashboard</h1>
         <div class="live-indicator">Actualización en vivo</div>
       </div>
-      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn-export" onclick="exportToExcel()">📊 Exportar Excel</button>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+      </div>
     </div>
 
     <!-- KPIs principales -->
@@ -228,8 +238,8 @@
     Chart.defaults.font.family = 'Outfit';
 
     const PALETTE = [
-      '#c4cdd4', '#7b8fa0', '#4a6572', '#6b8f71', '#a3c4bc',
-      '#d4a574', '#8b6f5c', '#9b7cb8', '#6c8ebf', '#bf6c6c'
+      '#4fc3f7', '#7c4dff', '#ff7043', '#66bb6a', '#ffa726',
+      '#ec407a', '#26c6da', '#ab47bc', '#8d6e63', '#78909c'
     ];
 
     let charts = {};
@@ -265,6 +275,8 @@
       showDashboard();
     }
 
+    let lastData = [];
+
     async function fetchData() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=*&order=created_at.desc`, {
@@ -272,6 +284,7 @@
         });
         const data = await res.json();
         if (!Array.isArray(data)) return;
+        lastData = data;
         renderDashboard(data);
         document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-CL');
       } catch (e) {
@@ -597,6 +610,34 @@
       const entries = Object.entries(obj);
       if (entries.length === 0) return null;
       return entries.sort((a,b) => b[1]-a[1])[0];
+    }
+
+    // Export to Excel/CSV
+    function exportToExcel() {
+      if (lastData.length === 0) { alert('No hay datos para exportar'); return; }
+
+      const headers = ['Email', 'Género', 'Rango Edad', 'Colores', 'Talla', 'Tipo Pijama', 'Acceso Anticipado', 'Fecha'];
+      const rows = lastData.map(d => [
+        d.email || '',
+        d.gender || '',
+        d.age_range || '',
+        (d.colors || []).join('; '),
+        d.size || '',
+        d.pajama_type || '',
+        d.early_access ? 'Sí' : 'No',
+        d.created_at ? new Date(d.created_at).toLocaleString('es-CL') : ''
+      ]);
+
+      // CSV with BOM for Excel compatibility
+      const BOM = '\uFEFF';
+      const csv = BOM + [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `noctu-encuesta-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>

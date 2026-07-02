@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NOCTU — Encuesta</title>
-  <meta name="description" content="Ayúdanos a crear la mejor experiencia nocturna. Encuesta NOCTU.">
+  <title>NOCTU â€” Encuesta</title>
+  <meta name="description" content="AyÃºdanos a crear la mejor experiencia nocturna. Encuesta NOCTU.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
@@ -71,6 +71,10 @@
       font-size: 0.9rem; color: rgba(234,232,228,0.5);
       margin-bottom: 1.25rem; max-width: 500px;
     }
+    .page .subtitle.multi {
+      font-size: 1rem; font-weight: 500; color: var(--silver);
+      text-shadow: 0 0 12px rgba(196,205,212,0.3);
+    }
 
     /* Input email */
     .email-input {
@@ -128,7 +132,7 @@
     .btn-center:hover { opacity: 0.85; transform: scale(1.02); }
     .btn-center:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Option boxes — always centered */
+    /* Option boxes â€” always centered */
     .options-grid {
       display: flex; flex-wrap: wrap; gap: 0.75rem;
       justify-content: center; align-items: stretch;
@@ -242,9 +246,9 @@
         <img src="./logo-noctu-luna.png" alt="NOCTU">
       </div>
       <h2 class="font-display">Bienvenido</h2>
-      <p class="subtitle">Gracias por visitar NOCTU. Tu opinión nos ayuda a crear la mejor experiencia nocturna.<br>Ingresa tu email para continuar.</p>
+      <p class="subtitle">Gracias por visitar NOCTU. Tu opiniÃ³n nos ayuda a crear la mejor experiencia nocturna.<br>Ingresa tu email para continuar.</p>
       <input type="email" class="email-input" id="emailInput" placeholder="tu@email.com" required>
-      <p class="error-msg" id="emailError">Por favor ingresa un email válido</p>
+      <p class="error-msg" id="emailError">Por favor ingresa un email vÃ¡lido</p>
       <p class="info-msg" id="loadingMsg" style="display:none;">Verificando...</p>
       <button class="btn-center" id="btnEmail" onclick="validateAndCheckEmail()">Siguiente</button>
     </div>
@@ -256,7 +260,7 @@
       </div>
       <div class="already-answered">
         <h2 class="font-display">Ya respondiste la encuesta</h2>
-        <p class="subtitle">Muchas gracias por tu participación anterior. Solo se permite una respuesta por persona.</p>
+        <p class="subtitle">Muchas gracias por tu participaciÃ³n anterior. Solo se permite una respuesta por persona.</p>
         <p class="subtitle">Te invitamos a seguir nuestras novedades:</p>
         <a href="https://instagram.com/noctu.cl" target="_blank" class="ig-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -269,21 +273,21 @@
       </div>
     </div>
 
-    <!-- PAGE 1: Género -->
+    <!-- PAGE 1: GÃ©nero -->
     <div class="page" data-page="1">
       <div class="logo-header">
         <img src="./logo-noctu-luna.png" alt="NOCTU">
       </div>
-      <h2 class="font-display">¿Quién está respondiendo?</h2>
-      <p class="subtitle">Selecciona tu género</p>
+      <h2 class="font-display">Â¿QuiÃ©n estÃ¡ respondiendo?</h2>
+      <p class="subtitle">Selecciona tu gÃ©nero</p>
       <div class="options-grid">
         <label class="option-box"><input type="radio" name="gender" value="Masculino"><span class="label">Masculino</span></label>
         <label class="option-box"><input type="radio" name="gender" value="Femenino"><span class="label">Femenino</span></label>
         <label class="option-box"><input type="radio" name="gender" value="Prefiero no responder"><span class="label">Prefiero no responder</span></label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back hidden" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+        <button class="btn-back hidden" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente â†’</button>
       </div>
     </div>
 
@@ -291,46 +295,46 @@
     <div class="page" data-page="2">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
       <h2 class="font-display">Rango de edad</h2>
-      <p class="subtitle">¿Qué edad tiene la persona que usará el pijama?</p>
+      <p class="subtitle">Â¿QuÃ© edad tiene la persona que usarÃ¡ el pijama?</p>
       <div class="options-grid">
-        <label class="option-box"><input type="radio" name="age" value="25-34"><span class="label">25 – 34</span></label>
-        <label class="option-box"><input type="radio" name="age" value="35-44"><span class="label">35 – 44</span></label>
-        <label class="option-box"><input type="radio" name="age" value="45-54"><span class="label">45 – 54</span></label>
-        <label class="option-box"><input type="radio" name="age" value="55-64"><span class="label">55 – 64</span></label>
+        <label class="option-box"><input type="radio" name="age" value="25-34"><span class="label">25 â€“ 34</span></label>
+        <label class="option-box"><input type="radio" name="age" value="35-44"><span class="label">35 â€“ 44</span></label>
+        <label class="option-box"><input type="radio" name="age" value="45-54"><span class="label">45 â€“ 54</span></label>
+        <label class="option-box"><input type="radio" name="age" value="55-64"><span class="label">55 â€“ 64</span></label>
         <label class="option-box"><input type="radio" name="age" value="65+"><span class="label">65+</span></label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+        <button class="btn-back" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente â†’</button>
       </div>
     </div>
 
     <!-- PAGE 3: Tipo de pijama -->
     <div class="page" data-page="3">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Qué estilo de pijama usarías?</h2>
-      <p class="subtitle">Puedes seleccionar más de uno</p>
+      <h2 class="font-display">Â¿QuÃ© estilo de pijama usarÃ­as?</h2>
+      <p class="subtitle">Puedes seleccionar mÃ¡s de uno</p>
       <div class="options-grid large">
-        <label class="option-box"><input type="checkbox" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama ClÃ¡sico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama ClÃ¡sico</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Camiseta + PantalÃ³n"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + PantalÃ³n</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
         <label class="option-box"><input type="checkbox" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+        <button class="btn-back" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente â†’</button>
       </div>
     </div>
 
     <!-- PAGE 4: Colores -->
     <div class="page" data-page="4">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Qué colores prefieres?</h2>
-      <p class="subtitle">Puedes seleccionar más de uno</p>
+      <h2 class="font-display">Â¿QuÃ© colores prefieres?</h2>
+      <p class="subtitle">Puedes seleccionar mÃ¡s de uno</p>
       <div class="options-grid large">
         <label class="option-box"><input type="checkbox" name="color" value="Negro"><div class="fabric-swatch" style="background:#0a0a0a;"></div><span class="label">Negro</span></label>
         <label class="option-box"><input type="checkbox" name="color" value="Azul marino"><div class="fabric-swatch" style="background:#1a237e;"></div><span class="label">Azul marino</span></label>
@@ -342,15 +346,15 @@
         <label class="option-box"><input type="checkbox" name="color" value="Otro"><span class="label-otro">Otro</span></label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+        <button class="btn-back" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente â†’</button>
       </div>
     </div>
 
     <!-- PAGE 5: Talla -->
     <div class="page" data-page="5">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Cuál es tu talla?</h2>
+      <h2 class="font-display">Â¿CuÃ¡l es tu talla?</h2>
       <p class="subtitle">Selecciona tu talla de preferencia</p>
       <div class="options-grid">
         <label class="option-box"><input type="radio" name="size" value="S"><span class="label">S</span></label>
@@ -360,8 +364,8 @@
         <label class="option-box"><input type="radio" name="size" value="XXL"><span class="label">XXL</span></label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+        <button class="btn-back" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente â†’</button>
       </div>
     </div>
 
@@ -369,14 +373,14 @@
     <div class="page" data-page="7">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
       <h2 class="font-display">Acceso anticipado</h2>
-      <p class="subtitle">¿Te gustaría recibir acceso anticipado al lanzamiento?</p>
+      <p class="subtitle">Â¿Te gustarÃ­a recibir acceso anticipado al lanzamiento?</p>
       <div class="checkbox-wrap">
         <input type="checkbox" id="earlyAccess" name="earlyAccess">
-        <label for="earlyAccess">Sí, quiero acceso anticipado</label>
+        <label for="earlyAccess">SÃ­, quiero acceso anticipado</label>
       </div>
       <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="submitSurvey()">Enviar →</button>
+        <button class="btn-back" onclick="prevPage()">â† AtrÃ¡s</button>
+        <button class="btn-forward" onclick="submitSurvey()">Enviar â†’</button>
       </div>
     </div>
 
@@ -453,7 +457,7 @@
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailRegex.test(input.value)) {
-        error.textContent = 'Por favor ingresa un email válido';
+        error.textContent = 'Por favor ingresa un email vÃ¡lido';
         error.classList.add('show');
         return;
       }
@@ -554,6 +558,13 @@
     document.getElementById('emailInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); validateAndCheckEmail(); }
     });
+
+    // Preview mode: add ?preview=gracias to URL to see the last page directly
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('preview') === 'gracias') {
+      currentPage = totalPages - 1;
+      showPage(currentPage);
+    }
   </script>
 </body>
 </html>
