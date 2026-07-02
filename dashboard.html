@@ -255,10 +255,19 @@
     <div class="chart-card" style="margin-bottom:2rem;"><canvas id="chartTimeline"></canvas></div>
 
     <!-- Correlación -->
-    <h2 class="section-title">🔗 Matriz de correlación entre variables</h2>
-    <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
-      <p style="font-size:0.75rem;color:rgba(234,232,228,0.4);margin-bottom:1rem;">Coeficiente de Cramér's V (asociación entre variables categóricas). Valores entre 0 (sin relación) y 1 (relación perfecta).</p>
-      <div id="correlationMatrix"></div>
+    <h2 class="section-title">🧠 Tendencias y patrones detectados</h2>
+    <div class="chart-card" style="margin-bottom:1rem;">
+      <div id="trendInsights"></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:2rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <h3 style="font-size:0.75rem;color:rgba(234,232,228,0.4);text-transform:uppercase;letter-spacing:0.08em;">Matriz tecnica (Cramer's V)</h3>
+        <button onclick="document.getElementById('matrixWrap').style.display = document.getElementById('matrixWrap').style.display === 'none' ? 'block' : 'none'" style="padding:0.3rem 0.7rem;background:rgba(196,205,212,0.05);border:1px solid rgba(196,205,212,0.15);border-radius:5px;color:rgba(234,232,228,0.5);font-size:0.65rem;cursor:pointer;">Mostrar / Ocultar</button>
+      </div>
+      <div id="matrixWrap" style="display:none;">
+        <p style="font-size:0.65rem;color:rgba(234,232,228,0.3);margin-bottom:0.75rem;">Valores entre 0 (sin relacion) y 1 (relacion perfecta)</p>
+        <div id="correlationMatrix"></div>
+      </div>
     </div>
 
     <!-- Tabla de datos -->
@@ -394,6 +403,9 @@
 
       // Correlation matrix
       renderCorrelationMatrix(data);
+
+      // Trend insights (natural language)
+      renderTrendInsights(data);
 
       // Data table
       renderDataTable(data);
@@ -813,6 +825,83 @@
       if (k <= 1) return null;
       const v = Math.sqrt(chi2 / (n * (k - 1)));
       return Math.min(v, 1); // Cap at 1
+    }
+
+    function renderTrendInsights(data) {
+      const container = document.getElementById('trendInsights');
+      if (data.length < 3) {
+        container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.85rem;">Se necesitan mas respuestas para detectar tendencias.</p>';
+        return;
+      }
+
+      const insights = [];
+      const total = data.length;
+
+      // Gender preferences
+      const byGender = {};
+      data.forEach(d => { if (d.gender) { if (!byGender[d.gender]) byGender[d.gender] = []; byGender[d.gender].push(d); } });
+
+      Object.entries(byGender).forEach(([gender, group]) => {
+        if (group.length < 2) return;
+        // Top type for this gender
+        const types = {};
+        group.forEach(d => { if (d.pajama_type) d.pajama_type.split(', ').forEach(t => { types[t] = (types[t] || 0) + 1; }); });
+        const topType = Object.entries(types).sort((a,b) => b[1]-a[1])[0];
+        if (topType) {
+          const pct = Math.round((topType[1] / group.length) * 100);
+          insights.push({ icon: gender === 'Masculino' ? '👔' : '👗', text: `<strong>${gender}</strong>: el estilo favorito es <strong>${topType[0]}</strong> (${pct}% lo eligieron)` });
+        }
+        // Top color for this gender
+        const colors = {};
+        group.forEach(d => { if (d.colors) d.colors.forEach(c => { colors[c] = (colors[c] || 0) + 1; }); });
+        const topColor = Object.entries(colors).sort((a,b) => b[1]-a[1])[0];
+        if (topColor) {
+          insights.push({ icon: '🎨', text: `<strong>${gender}</strong> prefiere el color <strong>${topColor[0]}</strong> (${topColor[1]} de ${group.length})` });
+        }
+      });
+
+      // Age preferences
+      const byAge = {};
+      data.forEach(d => { if (d.age_range) { if (!byAge[d.age_range]) byAge[d.age_range] = []; byAge[d.age_range].push(d); } });
+
+      Object.entries(byAge).forEach(([age, group]) => {
+        if (group.length < 2) return;
+        const types = {};
+        group.forEach(d => { if (d.pajama_type) d.pajama_type.split(', ').forEach(t => { types[t] = (types[t] || 0) + 1; }); });
+        const topType = Object.entries(types).sort((a,b) => b[1]-a[1])[0];
+        if (topType) {
+          insights.push({ icon: '📊', text: `Rango <strong>${age}</strong>: se inclina por <strong>${topType[0]}</strong>` });
+        }
+      });
+
+      // Early access correlation
+      const earlyGroup = data.filter(d => d.early_access);
+      const earlyPct = Math.round((earlyGroup.length / total) * 100);
+      if (earlyGroup.length > 0) {
+        insights.push({ icon: '🚀', text: `<strong>${earlyPct}%</strong> quiere acceso anticipado (${earlyGroup.length} de ${total} personas)` });
+      }
+
+      // Size distribution insight
+      const sizes = {};
+      data.forEach(d => { if (d.size) sizes[d.size] = (sizes[d.size] || 0) + 1; });
+      const topSize = Object.entries(sizes).sort((a,b) => b[1]-a[1])[0];
+      if (topSize) {
+        const pct = Math.round((topSize[1] / total) * 100);
+        insights.push({ icon: '📐', text: `La talla mas solicitada es <strong>${topSize[0]}</strong> (${pct}% de las respuestas)` });
+      }
+
+      // Render
+      if (insights.length === 0) {
+        container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.85rem;">Aun no hay suficientes datos para detectar patrones claros.</p>';
+        return;
+      }
+
+      container.innerHTML = insights.map(i => `
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(196,205,212,0.05);">
+          <span style="font-size:1.2rem;">${i.icon}</span>
+          <p style="font-size:0.85rem;color:rgba(255,255,255,0.75);line-height:1.4;">${i.text}</p>
+        </div>
+      `).join('');
     }
 
     function renderCorrelationMatrix(data) {
