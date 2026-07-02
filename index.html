@@ -169,6 +169,14 @@
     .style-icon { font-size: 2rem; margin-bottom: 0.25rem; }
     .label-otro { font-size: 1.4rem; font-weight: 400; color: var(--cream); letter-spacing: 0.05em; }
 
+    /* Type thumbnails */
+    .type-thumb {
+      width: 100%; max-width: 100px; height: auto; border-radius: 6px;
+      margin-bottom: 0.4rem; opacity: 0.85; transition: opacity 0.3s;
+    }
+    .option-box.selected .type-thumb { opacity: 1; }
+    .option-box:hover .type-thumb { opacity: 1; }
+
     /* Progress bar */
     .progress-bar {
       position: fixed; top: 0; left: 0; height: 3px; z-index: 100;
@@ -350,13 +358,16 @@
     <div class="page" data-page="6">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
       <h2 class="font-display">¿Qué tipo de pijama usas?</h2>
-      <p class="subtitle">Selecciona el corte que prefieres</p>
-      <div class="options-grid">
-        <label class="option-box"><input type="radio" name="type" value="Largo"><span class="label">Largo</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Corto"><span class="label">Corto</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Camisa y pantalón"><span class="label">Camisa y pantalón</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Polera y pantalón"><span class="label">Polera y pantalón</span></label>
-        <label class="option-box"><input type="radio" name="type" value="Conjunto deportivo"><span class="label">Conjunto deportivo</span></label>
+      <p class="subtitle">Selecciona el estilo que prefieres</p>
+      <div class="options-grid large">
+        <label class="option-box"><input type="radio" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
       </div>
       <div class="nav-buttons">
         <button class="btn-back" onclick="prevPage()">← Atrás</button>
