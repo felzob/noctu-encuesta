@@ -159,6 +159,21 @@
       border-top: 1px solid rgba(196,205,212,0.05);
     }
 
+    /* Correlation matrix */
+    .corr-table {
+      width: 100%; border-collapse: collapse; font-size: 0.75rem;
+    }
+    .corr-table th {
+      padding: 0.5rem 0.4rem; color: rgba(234,232,228,0.6);
+      font-weight: 400; text-align: center; font-size: 0.65rem;
+      border-bottom: 1px solid rgba(196,205,212,0.08);
+    }
+    .corr-table th:first-child { text-align: right; min-width: 90px; }
+    .corr-table td {
+      padding: 0.4rem; text-align: center; border-radius: 4px;
+      font-weight: 500; font-size: 0.75rem; min-width: 55px;
+    }
+
     @media (max-width: 768px) {
       .dashboard { padding: 1rem; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -221,6 +236,13 @@
     <!-- Timeline -->
     <h2 class="section-title">⏱️ Respuestas por día</h2>
     <div class="chart-card" style="margin-bottom:2rem;"><canvas id="chartTimeline"></canvas></div>
+
+    <!-- Correlación -->
+    <h2 class="section-title">🔗 Matriz de correlación entre variables</h2>
+    <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
+      <p style="font-size:0.75rem;color:rgba(234,232,228,0.4);margin-bottom:1rem;">Coeficiente de Cramér's V (asociación entre variables categóricas). Valores entre 0 (sin relación) y 1 (relación perfecta).</p>
+      <div id="correlationMatrix"></div>
+    </div>
 
     <div class="dash-footer">
       NOCTU Focus Group Dashboard · Actualización cada 5 segundos · <span id="lastUpdate">-</span>
@@ -332,6 +354,9 @@
 
       // Combos
       renderCombos(data);
+
+      // Correlation matrix
+      renderCorrelationMatrix(data);
     }
 
     function countField(data, field) {
@@ -638,6 +663,139 @@
       a.download = `noctu-encuesta-${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // Cramér's V correlation matrix
+    // ============================================================
+    function computeCramersV(data, fieldA, fieldB, getValueA, getValueB) {
+      // Build contingency table
+      const valsA = new Set();
+      const valsB = new Set();
+      data.forEach(d => {
+        const a = getValueA(d);
+        const b = getValueB(d);
+        if (a && b) { valsA.add(a); valsB.add(b); }
+      });
+
+      const rowLabels = [...valsA];
+      const colLabels = [...valsB];
+      if (rowLabels.length < 2 || colLabels.length < 2) return null;
+
+      const n = data.filter(d => getValueA(d) && getValueB(d)).length;
+      if (n === 0) return null;
+
+      // Count matrix
+      const counts = {};
+      rowLabels.forEach(r => { counts[r] = {}; colLabels.forEach(c => { counts[r][c] = 0; }); });
+      data.forEach(d => {
+        const a = getValueA(d);
+        const b = getValueB(d);
+        if (a && b && counts[a]) counts[a][b] = (counts[a][b] || 0) + 1;
+      });
+
+      // Row/col totals
+      const rowTotals = rowLabels.map(r => colLabels.reduce((s, c) => s + counts[r][c], 0));
+      const colTotals = colLabels.map(c => rowLabels.reduce((s, r) => s + counts[r][c], 0));
+
+      // Chi-squared
+      let chi2 = 0;
+      rowLabels.forEach((r, i) => {
+        colLabels.forEach((c, j) => {
+          const expected = (rowTotals[i] * colTotals[j]) / n;
+          if (expected > 0) {
+            chi2 += Math.pow(counts[r][c] - expected, 2) / expected;
+          }
+        });
+      });
+
+      const k = Math.min(rowLabels.length, colLabels.length);
+      if (k <= 1) return null;
+      const v = Math.sqrt(chi2 / (n * (k - 1)));
+      return Math.min(v, 1); // Cap at 1
+    }
+
+    function renderCorrelationMatrix(data) {
+      const container = document.getElementById('correlationMatrix');
+      if (data.length < 3) {
+        container.innerHTML = '<p style="color:rgba(234,232,228,0.3);font-size:0.8rem;">Se necesitan al menos 3 respuestas para calcular correlaciones.</p>';
+        return;
+      }
+
+      const variables = [
+        { name: 'Género', get: d => d.gender },
+        { name: 'Edad', get: d => d.age_range },
+        { name: 'Talla', get: d => d.size },
+        { name: 'Tipo pijama', get: d => d.pajama_type },
+        { name: 'Acceso ant.', get: d => d.early_access ? 'Sí' : 'No' },
+      ];
+
+      // Compute matrix
+      const matrix = [];
+      for (let i = 0; i < variables.length; i++) {
+        matrix[i] = [];
+        for (let j = 0; j < variables.length; j++) {
+          if (i === j) { matrix[i][j] = 1.0; }
+          else if (j < i) { matrix[i][j] = matrix[j][i]; }
+          else {
+            const v = computeCramersV(data, variables[i].name, variables[j].name, variables[i].get, variables[j].get);
+            matrix[i][j] = v !== null ? v : 0;
+          }
+        }
+      }
+
+      // Color scale: 0=dark, 1=bright
+      function cellColor(v) {
+        if (v >= 0.7) return 'rgba(79,195,247,0.6)';
+        if (v >= 0.5) return 'rgba(79,195,247,0.4)';
+        if (v >= 0.3) return 'rgba(79,195,247,0.25)';
+        if (v >= 0.15) return 'rgba(79,195,247,0.12)';
+        return 'rgba(196,205,212,0.04)';
+      }
+      function textColor(v) {
+        if (v >= 0.5) return '#fff';
+        if (v >= 0.3) return 'rgba(234,232,228,0.8)';
+        return 'rgba(234,232,228,0.5)';
+      }
+
+      let html = '<table class="corr-table"><thead><tr><th></th>';
+      variables.forEach(v => { html += `<th>${v.name}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      for (let i = 0; i < variables.length; i++) {
+        html += `<tr><th style="text-align:right;color:rgba(234,232,228,0.6)">${variables[i].name}</th>`;
+        for (let j = 0; j < variables.length; j++) {
+          const val = matrix[i][j];
+          const bg = i === j ? 'rgba(196,205,212,0.08)' : cellColor(val);
+          const tc = i === j ? 'rgba(234,232,228,0.3)' : textColor(val);
+          html += `<td style="background:${bg};color:${tc}">${val.toFixed(2)}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+
+      // Interpretation
+      const highCorr = [];
+      for (let i = 0; i < variables.length; i++) {
+        for (let j = i+1; j < variables.length; j++) {
+          if (matrix[i][j] >= 0.25) {
+            highCorr.push({ a: variables[i].name, b: variables[j].name, v: matrix[i][j] });
+          }
+        }
+      }
+      highCorr.sort((a,b) => b.v - a.v);
+
+      if (highCorr.length > 0) {
+        html += '<div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(196,205,212,0.08)">';
+        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin-bottom:0.5rem;">CORRELACIONES DESTACADAS:</p>';
+        highCorr.slice(0, 5).forEach(c => {
+          const strength = c.v >= 0.5 ? '🔥 Fuerte' : c.v >= 0.3 ? '⚡ Moderada' : '💡 Leve';
+          html += `<p style="font-size:0.8rem;color:rgba(234,232,228,0.6);margin-bottom:0.25rem;">${strength}: <span style="color:var(--silver)">${c.a}</span> ↔ <span style="color:var(--silver)">${c.b}</span> (V=${c.v.toFixed(3)})</p>`;
+        });
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
     }
   </script>
 </body>
