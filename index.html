@@ -92,6 +92,10 @@
     .already-answered { max-width: 400px; }
     .welcome-text { font-size: 0.95rem; color: rgba(255,255,255,0.7); max-width: 420px; margin-bottom: 1.5rem; line-height: 1.7; }
 
+    .consent-wrap { display: flex; align-items: flex-start; gap: 0.6rem; margin-top: 1.25rem; max-width: 420px; text-align: left; }
+    .consent-wrap input[type="checkbox"] { width: 18px; height: 18px; min-width: 18px; margin-top: 2px; accent-color: var(--silver); }
+    .consent-wrap label { font-size: 0.72rem; color: rgba(255,255,255,0.5); line-height: 1.5; cursor: pointer; }
+
     @media (max-width: 500px) {
       .logo-header img { max-width: 160px; }
       .survey-container { padding: 1rem 1rem 5.5rem; }
@@ -115,9 +119,13 @@
       <p class="welcome-text"><strong>NOCTU</strong> es una marca chilena de sleepwear masculino premium. Dise&#241;amos prendas de lujo confeccionadas con fibras naturales de la m&#225;s alta calidad, creadas para transformar el descanso en un ritual de confort, elegancia y bienestar.<br><br>Tu opinion es fundamental para que creemos los productos que realmente necesitas. Esta encuesta toma menos de 2 minutos.</p>
       <p class="subtitle"><strong>Ingresa tu email</strong> para comenzar</p>
       <input type="email" class="email-input" id="emailInput" placeholder="tu@email.com" required>
+      <div class="consent-wrap">
+        <input type="checkbox" id="consentCheck">
+        <label for="consentCheck">Acepto que mis respuestas sean utilizadas por NOCTU con fines de estudio de mercado. Mis datos ser&#225;n tratados de forma confidencial conforme a la Ley 21.719 de Protecci&#243;n de Datos Personales. Puedo solicitar su eliminaci&#243;n escribiendo a contacto@noctu.cl</label>
+      </div>
       <p class="error-msg" id="emailError">Por favor ingresa un email valido</p>
       <p class="info-msg" id="loadingMsg" style="display:none;">Verificando...</p>
-      <button class="btn-center" id="btnEmail" onclick="validateAndCheckEmail()">Comenzar</button>
+      <button class="btn-center" id="btnEmail" onclick="validateAndCheckEmail()" disabled>Comenzar</button>
     </div>
 
     <!-- PAGE ALREADY ANSWERED -->
@@ -383,6 +391,11 @@
 
     document.getElementById('emailInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); validateAndCheckEmail(); }
+    });
+
+    // Enable button only when consent is checked
+    document.getElementById('consentCheck').addEventListener('change', function() {
+      document.getElementById('btnEmail').disabled = !this.checked;
     });
 
     // Preview: ?preview=gracias

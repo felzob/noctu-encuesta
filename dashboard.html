@@ -266,10 +266,16 @@
     <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
         <p style="font-size:0.75rem;color:rgba(234,232,228,0.4);">Todas las respuestas individuales</p>
-        <button onclick="fetchData()" style="padding:0.4rem 0.8rem;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:6px;color:#4fc3f7;font-size:0.7rem;cursor:pointer;">Refrescar</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="toggleWaitlist()" style="padding:0.4rem 0.8rem;background:rgba(102,187,106,0.1);border:1px solid rgba(102,187,106,0.3);border-radius:6px;color:#66bb6a;font-size:0.7rem;cursor:pointer;">Waitlist Landing</button>
+          <button onclick="fetchData()" style="padding:0.4rem 0.8rem;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:6px;color:#4fc3f7;font-size:0.7rem;cursor:pointer;">Refrescar</button>
+        </div>
       </div>
       <div id="dataTable"></div>
+      <div id="waitlistTable" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(196,205,212,0.08);"></div>
     </div>
+
+    <p style="font-size:0.65rem;color:rgba(234,232,228,0.3);text-align:center;max-width:500px;margin:0 auto 1rem;">Datos tratados conforme a Ley 21.719. Uso exclusivo interno para estudio de mercado.</p>
 
     <div class="dash-footer">
       NOCTU Focus Group Dashboard · Presiona F5 para actualizar · <span id="lastUpdate">-</span>
@@ -694,6 +700,41 @@
       });
       html += '</tbody></table>';
       container.innerHTML = html;
+    }
+
+    // Waitlist from landing
+    let waitlistVisible = false;
+    async function toggleWaitlist() {
+      const container = document.getElementById('waitlistTable');
+      if (waitlistVisible) {
+        container.style.display = 'none';
+        waitlistVisible = false;
+        return;
+      }
+      container.style.display = 'block';
+      container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.8rem;">Cargando waitlist...</p>';
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist?select=*&order=created_at.desc`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.8rem;">No hay correos en la waitlist.</p>';
+          waitlistVisible = true;
+          return;
+        }
+        let html = '<h4 style="font-size:0.75rem;color:#66bb6a;margin-bottom:0.5rem;">WAITLIST LANDING (' + data.length + ' correos)</h4>';
+        html += '<table class="data-table"><thead><tr><th>Email</th><th>Fecha registro</th></tr></thead><tbody>';
+        data.forEach(d => {
+          const fecha = d.created_at ? new Date(d.created_at).toLocaleDateString('es-CL') : '-';
+          html += `<tr><td>${d.email || '-'}</td><td>${fecha}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (e) {
+        container.innerHTML = '<p style="color:#e57373;font-size:0.8rem;">Error al cargar waitlist.</p>';
+      }
+      waitlistVisible = true;
     }
 
     // Export to Excel/CSV
