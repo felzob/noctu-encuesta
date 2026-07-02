@@ -171,7 +171,7 @@
 
     /* Type thumbnails */
     .type-thumb {
-      width: 100%; max-width: 100px; height: auto; border-radius: 6px;
+      width: 80px; height: 96px; object-fit: cover; border-radius: 6px;
       margin-bottom: 0.4rem; opacity: 0.85; transition: opacity 0.3s;
     }
     .option-box.selected .type-thumb { opacity: 1; }
@@ -297,8 +297,29 @@
       </div>
     </div>
 
-    <!-- PAGE 3: Colores -->
+    <!-- PAGE 3: Tipo de pijama -->
     <div class="page" data-page="3">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">¿Qué estilo de pijama usarías?</h2>
+      <p class="subtitle">Puedes seleccionar más de uno</p>
+      <div class="options-grid large">
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
+        <label class="option-box"><input type="checkbox" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 4: Colores -->
+    <div class="page" data-page="4">
       <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
       <h2 class="font-display">¿Qué colores prefieres?</h2>
       <p class="subtitle">Puedes seleccionar más de uno</p>
@@ -329,27 +350,6 @@
         <label class="option-box"><input type="radio" name="size" value="L"><span class="label">L</span></label>
         <label class="option-box"><input type="radio" name="size" value="XL"><span class="label">XL</span></label>
         <label class="option-box"><input type="radio" name="size" value="XXL"><span class="label">XXL</span></label>
-      </div>
-      <div class="nav-buttons">
-        <button class="btn-back" onclick="prevPage()">← Atrás</button>
-        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- PAGE 6: Tipo de pijama -->
-    <div class="page" data-page="6">
-      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
-      <h2 class="font-display">¿Qué estilo de pijama usarías?</h2>
-      <p class="subtitle">Puedes seleccionar más de uno</p>
-      <div class="options-grid large">
-        <label class="option-box"><input type="checkbox" name="type" value="Pijama Clásico"><img src="./Tipos de pijama/01-clasico.jpg" class="type-thumb"><span class="label">Pijama Clásico</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Pijama Moderno"><img src="./Tipos de pijama/02-moderno.jpg" class="type-thumb"><span class="label">Pijama Moderno</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Pijama Resort"><img src="./Tipos de pijama/03-resort.jpg" class="type-thumb"><span class="label">Pijama Resort</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Camiseta + Pantalón"><img src="./Tipos de pijama/05-camiseta-pantalon.jpg" class="type-thumb"><span class="label">Camiseta + Pantalón</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Pijama Henley"><img src="./Tipos de pijama/06-henley.jpg" class="type-thumb"><span class="label">Pijama Henley</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Cuello Mao"><img src="./Tipos de pijama/07-cuello-mao.jpg" class="type-thumb"><span class="label">Cuello Mao</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Oversized"><img src="./Tipos de pijama/12-oversized.jpg" class="type-thumb"><span class="label">Oversized</span></label>
-        <label class="option-box"><input type="checkbox" name="type" value="Short Set"><img src="./Tipos de pijama/13-short-set.jpg" class="type-thumb"><span class="label">Short Set</span></label>
       </div>
       <div class="nav-buttons">
         <button class="btn-back" onclick="prevPage()">← Atrás</button>
