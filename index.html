@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOCTU — Encuesta</title>
+  <meta name="description" content="Ayúdanos a crear la mejor experiencia nocturna. Encuesta NOCTU.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --black: #05050a;
+      --silver: #c4cdd4;
+      --cream: #eae8e4;
+      --graphite: #1e1e2a;
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--black);
+      color: var(--cream);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+    }
+    .font-display { font-family: 'Cormorant Garamond', serif; }
+
+    /* Stars */
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .star {
+      position: absolute; width: 2px; height: 2px;
+      background: var(--silver); border-radius: 50%;
+      animation: twinkle var(--dur) ease-in-out infinite; opacity: 0;
+    }
+    @keyframes twinkle { 0%,100%{opacity:0;} 50%{opacity:var(--op);} }
+    .glow {
+      position: fixed; top: 50%; left: 50%; width: 600px; height: 600px;
+      transform: translate(-50%,-50%);
+      background: radial-gradient(circle, rgba(196,205,212,0.04) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Logo - centered, always on top of each page */
+    .logo-header {
+      width: 100%; text-align: center;
+      margin-bottom: 1rem; flex-shrink: 0;
+    }
+    .logo-header img {
+      max-width: 200px; width: 45vw; height: auto;
+    }
+
+    /* Container */
+    .survey-container {
+      position: relative; z-index: 1;
+      max-width: 700px; margin: 0 auto;
+      padding: 2rem 1.5rem 6rem; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    /* Pages */
+    .page { display: none; width: 100%; text-align: center; }
+    .page.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* Titles */
+    .page h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      color: var(--silver); letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .page .subtitle {
+      font-size: 0.9rem; color: rgba(234,232,228,0.5);
+      margin-bottom: 1.25rem; max-width: 500px;
+    }
+
+    /* Input email */
+    .email-input {
+      width: 100%; max-width: 380px;
+      padding: 1rem 1.25rem; margin: 1.5rem auto 0;
+      background: var(--graphite);
+      border: 1px solid rgba(196,205,212,0.15);
+      border-radius: 8px; color: var(--cream);
+      font-family: 'Outfit', sans-serif; font-size: 1rem;
+      outline: none; transition: border-color 0.3s;
+      display: block;
+    }
+    .email-input::placeholder { color: rgba(234,232,228,0.25); }
+    .email-input:focus { border-color: rgba(196,205,212,0.4); }
+
+    /* Navigation buttons - fixed at bottom */
+    .nav-buttons {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 700px; margin: 0 auto;
+      padding: 1rem 2rem 1.5rem;
+      background: linear-gradient(to top, var(--black) 60%, transparent);
+      z-index: 50;
+    }
+    .btn-back, .btn-forward {
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-family: 'Outfit', sans-serif; font-weight: 400;
+      font-size: 0.9rem; cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-back {
+      background: transparent;
+      border: 1px solid rgba(196,205,212,0.25);
+      color: var(--silver);
+    }
+    .btn-back:hover { border-color: var(--silver); }
+    .btn-back.hidden { visibility: hidden; }
+    .btn-forward {
+      background: linear-gradient(135deg, #9ba8b2, #c4cdd4, #d6dce1);
+      color: var(--black); border: none; font-weight: 500;
+    }
+    .btn-forward:hover { opacity: 0.85; transform: scale(1.02); }
+    .btn-forward:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-center {
+      display: inline-block; margin-top: 2rem;
+      padding: 0.875rem 2.5rem;
+      background: linear-gradient(135deg, #9ba8b2, #c4cdd4, #d6dce1);
+      color: var(--black); border: none; border-radius: 8px;
+      font-family: 'Outfit', sans-serif; font-weight: 500;
+      font-size: 0.95rem; cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-center:hover { opacity: 0.85; transform: scale(1.02); }
+    .btn-center:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Option boxes — always centered */
+    .options-grid {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      justify-content: center; align-items: stretch;
+      margin: 1rem 0; width: 100%;
+    }
+    .option-box {
+      position: relative;
+      padding: 1rem 1.25rem;
+      background: var(--graphite);
+      border: 1px solid rgba(196,205,212,0.12);
+      border-radius: 12px; cursor: pointer;
+      transition: all 0.3s; text-align: center;
+      min-width: 120px;
+    }
+    .option-box:hover { border-color: rgba(196,205,212,0.35); }
+    .option-box.selected {
+      border-color: var(--silver);
+      background: rgba(196,205,212,0.08);
+      box-shadow: 0 0 15px rgba(196,205,212,0.1);
+    }
+    .option-box input { display: none; }
+    .option-box .label { font-size: 0.9rem; color: var(--cream); }
+
+    /* Large boxes */
+    .options-grid.large .option-box {
+      padding: 1rem 0.75rem; min-height: 110px; min-width: 130px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.5rem;
+    }
+
+    /* Fabric swatch */
+    .fabric-swatch {
+      width: 50px; height: 35px; border-radius: 4px;
+      border: 1px solid rgba(196,205,212,0.2);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .style-icon { font-size: 2rem; margin-bottom: 0.25rem; }
+    .label-otro { font-size: 1.4rem; font-weight: 400; color: var(--cream); letter-spacing: 0.05em; }
+
+    /* Progress bar */
+    .progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px; z-index: 100;
+      background: linear-gradient(90deg, var(--silver), rgba(196,205,212,0.5));
+      transition: width 0.4s ease;
+    }
+
+    /* Checkbox */
+    .checkbox-wrap {
+      display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .checkbox-wrap input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--silver); }
+    .checkbox-wrap label { font-size: 1rem; color: var(--cream); cursor: pointer; }
+
+    /* Instagram link */
+    .ig-link {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      margin-top: 1.5rem; padding: 0.75rem 1.5rem;
+      border: 1px solid rgba(196,205,212,0.25);
+      border-radius: 8px; color: var(--cream);
+      text-decoration: none; font-size: 0.95rem;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .ig-link:hover { border-color: var(--silver); background: rgba(196,205,212,0.05); }
+    .ig-link svg { width: 22px; height: 22px; }
+
+    /* Error / info messages */
+    .error-msg { color: #e57373; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+    .error-msg.show { display: block; }
+    .info-msg { color: var(--silver); font-size: 0.9rem; margin-top: 0.75rem; opacity: 0.7; }
+
+    /* Already answered overlay */
+    .already-answered { max-width: 400px; }
+
+    @media (max-width: 500px) {
+      .logo-header img { max-width: 160px; }
+      .survey-container { padding: 1rem 1rem 5.5rem; }
+      .options-grid .option-box { min-width: 100px; padding: 0.75rem 1rem; }
+      .options-grid.large .option-box { min-width: 110px; min-height: 95px; }
+      .nav-buttons { padding: 0.75rem 1rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <div class="glow"></div>
+  <div class="progress-bar" id="progressBar" style="width:0%"></div>
+
+  <div class="survey-container">
+
+    <!-- PAGE 0: Bienvenida + Email -->
+    <div class="page active" data-page="0">
+      <div class="logo-header">
+        <img src="./logo-noctu-luna.png" alt="NOCTU">
+      </div>
+      <h2 class="font-display">Bienvenido</h2>
+      <p class="subtitle">Gracias por visitar NOCTU. Tu opinión nos ayuda a crear la mejor experiencia nocturna.<br>Ingresa tu email para continuar.</p>
+      <input type="email" class="email-input" id="emailInput" placeholder="tu@email.com" required>
+      <p class="error-msg" id="emailError">Por favor ingresa un email válido</p>
+      <p class="info-msg" id="loadingMsg" style="display:none;">Verificando...</p>
+      <button class="btn-center" id="btnEmail" onclick="validateAndCheckEmail()">Siguiente</button>
+    </div>
+
+    <!-- PAGE ALREADY ANSWERED -->
+    <div class="page" data-page="already">
+      <div class="logo-header">
+        <img src="./logo-noctu-luna.png" alt="NOCTU">
+      </div>
+      <div class="already-answered">
+        <h2 class="font-display">Ya respondiste la encuesta</h2>
+        <p class="subtitle">Muchas gracias por tu participación anterior. Solo se permite una respuesta por persona.</p>
+        <p class="subtitle">Te invitamos a seguir nuestras novedades:</p>
+        <a href="https://instagram.com/noctu.cl" target="_blank" class="ig-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="5"/>
+            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+          @Noctu.cl
+        </a>
+      </div>
+    </div>
+
+    <!-- PAGE 1: Género -->
+    <div class="page" data-page="1">
+      <div class="logo-header">
+        <img src="./logo-noctu-luna.png" alt="NOCTU">
+      </div>
+      <h2 class="font-display">¿Quién está respondiendo?</h2>
+      <p class="subtitle">Selecciona tu género</p>
+      <div class="options-grid">
+        <label class="option-box"><input type="radio" name="gender" value="Masculino"><span class="label">Masculino</span></label>
+        <label class="option-box"><input type="radio" name="gender" value="Femenino"><span class="label">Femenino</span></label>
+        <label class="option-box"><input type="radio" name="gender" value="Prefiero no responder"><span class="label">Prefiero no responder</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back hidden" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 2: Rango etario -->
+    <div class="page" data-page="2">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">Rango de edad</h2>
+      <p class="subtitle">¿Qué edad tiene la persona que usará el pijama?</p>
+      <div class="options-grid">
+        <label class="option-box"><input type="radio" name="age" value="25-34"><span class="label">25 – 34</span></label>
+        <label class="option-box"><input type="radio" name="age" value="35-44"><span class="label">35 – 44</span></label>
+        <label class="option-box"><input type="radio" name="age" value="45-54"><span class="label">45 – 54</span></label>
+        <label class="option-box"><input type="radio" name="age" value="55-64"><span class="label">55 – 64</span></label>
+        <label class="option-box"><input type="radio" name="age" value="65+"><span class="label">65+</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 3: Estilo -->
+    <div class="page" data-page="3">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">¿Qué estilo prefieres?</h2>
+      <p class="subtitle">Selecciona el que más te represente</p>
+      <div class="options-grid large">
+        <label class="option-box"><input type="radio" name="style" value="Clásico"><span class="style-icon">🏛️</span><span class="label">Clásico</span></label>
+        <label class="option-box"><input type="radio" name="style" value="Minimalista"><span class="style-icon">◻️</span><span class="label">Minimalista</span></label>
+        <label class="option-box"><input type="radio" name="style" value="Italiano"><span class="style-icon">🇮🇹</span><span class="label">Italiano</span></label>
+        <label class="option-box"><input type="radio" name="style" value="Moderno"><span class="style-icon">✦</span><span class="label">Moderno</span></label>
+        <label class="option-box"><input type="radio" name="style" value="Hotel cinco estrellas"><span class="style-icon">⭐</span><span class="label">Hotel 5 estrellas</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 4: Colores -->
+    <div class="page" data-page="4">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">¿Qué colores prefieres?</h2>
+      <p class="subtitle">Puedes seleccionar más de uno</p>
+      <div class="options-grid large">
+        <label class="option-box"><input type="checkbox" name="color" value="Negro"><div class="fabric-swatch" style="background:#0a0a0a;"></div><span class="label">Negro</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Azul marino"><div class="fabric-swatch" style="background:#1a237e;"></div><span class="label">Azul marino</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Gris grafito"><div class="fabric-swatch" style="background:#424242;"></div><span class="label">Gris grafito</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Blanco"><div class="fabric-swatch" style="background:#f5f5f5;"></div><span class="label">Blanco</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Verde oliva"><div class="fabric-swatch" style="background:#556b2f;"></div><span class="label">Verde oliva</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Burdeo"><div class="fabric-swatch" style="background:#6b1c2a;"></div><span class="label">Burdeo</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Beige"><div class="fabric-swatch" style="background:#d4c5a9;"></div><span class="label">Beige</span></label>
+        <label class="option-box"><input type="checkbox" name="color" value="Otro"><span class="label-otro">Otro</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 5: Talla -->
+    <div class="page" data-page="5">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">¿Cuál es tu talla?</h2>
+      <p class="subtitle">Selecciona tu talla de preferencia</p>
+      <div class="options-grid">
+        <label class="option-box"><input type="radio" name="size" value="S"><span class="label">S</span></label>
+        <label class="option-box"><input type="radio" name="size" value="M"><span class="label">M</span></label>
+        <label class="option-box"><input type="radio" name="size" value="L"><span class="label">L</span></label>
+        <label class="option-box"><input type="radio" name="size" value="XL"><span class="label">XL</span></label>
+        <label class="option-box"><input type="radio" name="size" value="XXL"><span class="label">XXL</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 6: Tipo de pijama -->
+    <div class="page" data-page="6">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">¿Qué tipo de pijama usas?</h2>
+      <p class="subtitle">Selecciona el corte que prefieres</p>
+      <div class="options-grid">
+        <label class="option-box"><input type="radio" name="type" value="Largo"><span class="label">Largo</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Corto"><span class="label">Corto</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Camisa y pantalón"><span class="label">Camisa y pantalón</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Polera y pantalón"><span class="label">Polera y pantalón</span></label>
+        <label class="option-box"><input type="radio" name="type" value="Conjunto deportivo"><span class="label">Conjunto deportivo</span></label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="nextPage()" disabled>Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 7: Acceso anticipado -->
+    <div class="page" data-page="7">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">Acceso anticipado</h2>
+      <p class="subtitle">¿Te gustaría recibir acceso anticipado al lanzamiento?</p>
+      <div class="checkbox-wrap">
+        <input type="checkbox" id="earlyAccess" name="earlyAccess">
+        <label for="earlyAccess">Sí, quiero acceso anticipado</label>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="prevPage()">← Atrás</button>
+        <button class="btn-forward" onclick="submitSurvey()">Enviar →</button>
+      </div>
+    </div>
+
+    <!-- PAGE 8: Gracias -->
+    <div class="page" data-page="8">
+      <div class="logo-header"><img src="./logo-noctu-luna.png" alt="NOCTU"></div>
+      <h2 class="font-display">Muchas gracias por tus respuestas</h2>
+      <p class="subtitle">Te invitamos a seguir todas las novedades en nuestro Instagram</p>
+      <a href="https://instagram.com/noctu.cl" target="_blank" class="ig-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+        @Noctu.cl
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    // Supabase config
+    const SUPABASE_URL = 'https://jxhynrdiiunszwfgxzgy.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aHlucmRpaXVuc3p3Zmd4emd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MDU3OTIsImV4cCI6MjA5ODE4MTc5Mn0.xu2NvAiJhfgj2trxJRGjXvodjp80jZQtgZDUR6ayqw8';
+
+    // Stars
+    const stars = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random()*100+'%';
+      s.style.top = Math.random()*100+'%';
+      s.style.setProperty('--dur', (3+Math.random()*6)+'s');
+      s.style.setProperty('--op', (0.15+Math.random()*0.5).toString());
+      s.style.animationDelay = Math.random()*6+'s';
+      stars.appendChild(s);
+    }
+
+    // Survey logic
+    let currentPage = 0;
+    const pages = document.querySelectorAll('.page');
+    const totalPages = pages.length;
+    const progressBar = document.getElementById('progressBar');
+
+    // Page order for navigation (excluding 'already' page)
+    const pageOrder = [0, 2, 3, 4, 5, 6, 7, 8, 9]; // indices in pages NodeList
+
+    function getPageIndex(n) {
+      // pages[0] = email, pages[1] = already, pages[2..9] = survey pages 1-8
+      return n;
+    }
+
+    function showPage(n) {
+      pages.forEach(p => p.classList.remove('active'));
+      pages[n].classList.add('active');
+      // Progress: skip email(0) and already(1) pages
+      const surveyProgress = Math.max(0, n - 2);
+      const surveyTotal = totalPages - 3; // minus email, already, thanks
+      progressBar.style.width = ((surveyProgress / surveyTotal) * 100) + '%';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextPage() {
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        // Skip 'already' page (index 1)
+        if (currentPage === 1) currentPage = 2;
+        showPage(currentPage);
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 2) {
+        currentPage--;
+        showPage(currentPage);
+      }
+    }
+
+    async function validateAndCheckEmail() {
+      const input = document.getElementById('emailInput');
+      const error = document.getElementById('emailError');
+      const loading = document.getElementById('loadingMsg');
+      const btn = document.getElementById('btnEmail');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(input.value)) {
+        error.textContent = 'Por favor ingresa un email válido';
+        error.classList.add('show');
+        return;
+      }
+
+      error.classList.remove('show');
+      loading.style.display = 'block';
+      btn.disabled = true;
+
+      try {
+        // Check if email already responded
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/survey_responses?email=eq.${encodeURIComponent(input.value)}&select=id`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+          // Already answered
+          loading.style.display = 'none';
+          btn.disabled = false;
+          currentPage = 1; // 'already' page
+          showPage(currentPage);
+          return;
+        }
+      } catch (e) {
+        // If check fails, let them continue anyway
+      }
+
+      loading.style.display = 'none';
+      btn.disabled = false;
+      currentPage = 2; // First survey question
+      showPage(currentPage);
+    }
+
+    // Radio/checkbox selection
+    document.querySelectorAll('.option-box').forEach(box => {
+      box.addEventListener('click', function() {
+        const input = this.querySelector('input');
+        if (!input) return;
+        if (input.type === 'radio') {
+          this.closest('.options-grid').querySelectorAll('.option-box').forEach(b => b.classList.remove('selected'));
+          this.classList.add('selected');
+          input.checked = true;
+        } else if (input.type === 'checkbox') {
+          input.checked = !input.checked;
+          this.classList.toggle('selected', input.checked);
+        }
+        enableButton();
+      });
+    });
+
+    function enableButton() {
+      const page = pages[currentPage];
+      const radios = page.querySelectorAll('.options-grid input[type="radio"]');
+      const checkboxes = page.querySelectorAll('.options-grid input[type="checkbox"]');
+      const btn = page.querySelector('.btn-forward');
+      if (!btn) return;
+      if (radios.length > 0) {
+        btn.disabled = !Array.from(radios).some(r => r.checked);
+      } else if (checkboxes.length > 0) {
+        btn.disabled = !Array.from(checkboxes).some(c => c.checked);
+      }
+    }
+
+    async function submitSurvey() {
+      const data = {
+        email: document.getElementById('emailInput').value,
+        gender: document.querySelector('input[name="gender"]:checked')?.value || null,
+        age_range: document.querySelector('input[name="age"]:checked')?.value || null,
+        style: document.querySelector('input[name="style"]:checked')?.value || null,
+        colors: Array.from(document.querySelectorAll('input[name="color"]:checked')).map(c => c.value),
+        size: document.querySelector('input[name="size"]:checked')?.value || null,
+        pajama_type: document.querySelector('input[name="type"]:checked')?.value || null,
+        early_access: document.getElementById('earlyAccess').checked
+      };
+
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/survey_responses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.error('Error saving survey:', e);
+      }
+
+      // Show thank you page (last page)
+      currentPage = totalPages - 1;
+      showPage(currentPage);
+    }
+
+    // Enter key on email
+    document.getElementById('emailInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); validateAndCheckEmail(); }
+    });
+  </script>
+</body>
+</html>
