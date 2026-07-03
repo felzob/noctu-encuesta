@@ -228,6 +228,7 @@
       <div class="kpi-card"><div class="value" id="kpiToday">0</div><div class="label">Hoy</div></div>
       <div class="kpi-card"><div class="value" id="kpiEarlyAccess">0%</div><div class="label">Quieren acceso anticipado</div></div>
       <div class="kpi-card"><div class="value" id="kpiAvgColors">0</div><div class="label">Colores promedio por persona</div></div>
+      <div class="kpi-card"><div class="value" id="kpiAvgTypes">0</div><div class="label">Estilos promedio por persona</div></div>
       <div class="kpi-card"><div class="value" id="kpiConversion">0%</div><div class="label">Tasa acceso anticipado</div></div>
     </div>
 
@@ -370,11 +371,19 @@
       const totalColors = data.reduce((sum, d) => sum + (d.colors?.length || 0), 0);
       const avgColors = total > 0 ? (totalColors / total).toFixed(1) : '0';
 
+      // Avg pajama types (styles) per person — pajama_type is a comma-separated string
+      const totalTypes = data.reduce((sum, d) => {
+        if (!d.pajama_type) return sum;
+        return sum + d.pajama_type.split(',').filter(t => t.trim().length > 0).length;
+      }, 0);
+      const avgTypes = total > 0 ? (totalTypes / total).toFixed(1) : '0';
+
       // KPIs
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiToday').textContent = todayCount;
       document.getElementById('kpiEarlyAccess').textContent = earlyCount;
       document.getElementById('kpiAvgColors').textContent = avgColors;
+      document.getElementById('kpiAvgTypes').textContent = avgTypes;
       document.getElementById('kpiConversion').textContent = earlyPct + '%';
 
       // Count fields
