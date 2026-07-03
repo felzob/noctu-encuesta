@@ -819,35 +819,54 @@
       });
       html += `</div>`;
 
-      // Colores visual
+      // Colores visual — Heatmap
       if (selectedColors.length > 0 && colorSum > 0) {
         html += `<p style="font-size:0.7rem;color:rgba(234,232,228,0.5);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">Distribucion color x talla (${numColors} colores)</p>`;
-        html += `<table class="data-table" style="margin-bottom:0.5rem;"><thead><tr><th>Color</th>`;
-        sizeOrder.forEach(s => { html += `<th>${s}</th>`; });
-        html += `<th>Total</th></tr></thead><tbody>`;
+
+        // Calculate all cell values first to find max for color scale
+        const cells = {};
+        let maxCell = 0;
+        selectedColors.forEach(([c]) => {
+          const colorUnits = colorDistrib[c] || 0;
+          cells[c] = {};
+          sizeOrder.forEach(s => {
+            const val = Math.max(0, Math.round(colorUnits * sizePcts[s]));
+            cells[c][s] = val;
+            if (val > maxCell) maxCell = val;
+          });
+        });
+
+        // Heatmap table
+        html += `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:separate;border-spacing:3px;"><thead><tr><th style="padding:0.4rem 0.6rem;font-size:0.65rem;color:rgba(234,232,228,0.4);text-align:left;"></th>`;
+        sizeOrder.forEach(s => { html += `<th style="padding:0.4rem;font-size:0.75rem;color:rgba(234,232,228,0.6);text-align:center;font-weight:400;">${s}</th>`; });
+        html += `<th style="padding:0.4rem 0.6rem;font-size:0.7rem;color:rgba(234,232,228,0.5);text-align:center;">Total</th></tr></thead><tbody>`;
+
         const colTotals = {};
         sizeOrder.forEach(s => { colTotals[s] = 0; });
         let grandTotal = 0;
+
         selectedColors.forEach(([c]) => {
           const colorUnits = colorDistrib[c] || 0;
-          html += `<tr><td style="color:rgba(255,255,255,0.85);">${c}</td>`;
-          let rowCheck = 0;
+          html += `<tr><td style="padding:0.4rem 0.6rem;font-size:0.75rem;color:rgba(255,255,255,0.8);white-space:nowrap;">${c}</td>`;
           sizeOrder.forEach(s => {
-            const cellUnits = Math.max(0, Math.round(colorUnits * sizePcts[s]));
-            colTotals[s] += cellUnits;
-            rowCheck += cellUnits;
-            html += `<td>${cellUnits}</td>`;
+            const val = cells[c][s];
+            colTotals[s] += val;
+            const intensity = maxCell > 0 ? val / maxCell : 0;
+            const bg = `rgba(79,195,247,${(intensity * 0.6 + 0.05).toFixed(2)})`;
+            const textColor = intensity > 0.4 ? '#fff' : 'rgba(255,255,255,0.7)';
+            html += `<td style="padding:0.5rem;text-align:center;border-radius:6px;background:${bg};color:${textColor};font-weight:${intensity > 0.4 ? '600' : '400'};font-size:0.85rem;">${val}</td>`;
           });
-          // Adjust rounding
-          const rowDiff = colorUnits - rowCheck;
-          html += `<td style="font-weight:500;color:#66bb6a;">${colorUnits}</td></tr>`;
           grandTotal += colorUnits;
+          html += `<td style="padding:0.4rem 0.6rem;text-align:center;font-size:0.8rem;font-weight:500;color:#66bb6a;">${colorUnits}</td></tr>`;
         });
+
         // Total row
-        html += `<tr style="border-top:1px solid rgba(196,205,212,0.15);"><td style="font-weight:500;color:var(--silver);">Total</td>`;
-        sizeOrder.forEach(s => { html += `<td style="font-weight:500;">${colTotals[s]}</td>`; });
-        html += `<td style="font-weight:600;color:#66bb6a;">${grandTotal}</td></tr>`;
-        html += `</tbody></table>`;
+        html += `<tr><td style="padding:0.4rem 0.6rem;font-size:0.7rem;color:var(--silver);font-weight:500;">Total</td>`;
+        sizeOrder.forEach(s => {
+          html += `<td style="padding:0.4rem;text-align:center;font-size:0.75rem;font-weight:500;color:rgba(234,232,228,0.6);">${colTotals[s]}</td>`;
+        });
+        html += `<td style="padding:0.4rem 0.6rem;text-align:center;font-size:0.85rem;font-weight:700;color:#66bb6a;">${grandTotal}</td></tr>`;
+        html += `</tbody></table></div>`;
       } else {
         html += `<p style="font-size:0.75rem;color:rgba(234,232,228,0.3);margin-bottom:1rem;">Sin datos de colores disponibles</p>`;
       }
