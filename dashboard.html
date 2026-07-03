@@ -266,10 +266,24 @@
     </div>
 
     <!-- Pronostico de produccion -->
-    <h2 class="section-title">🏭 Pronostico de produccion (base 100 unidades)</h2>
-    <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
-      <p style="font-size:0.7rem;color:rgba(234,232,228,0.35);margin-bottom:1rem;">Top 5 estilos mas seleccionados con distribucion de tallas proporcional a las respuestas</p>
-      <div id="forecastTable"></div>
+    <h2 class="section-title">🏭 Simulador de pedido</h2>
+    <div class="chart-card" style="margin-bottom:2rem;">
+      <p style="font-size:0.7rem;color:rgba(234,232,228,0.35);margin-bottom:1rem;">Selecciona estilo, MOQ y colores para ver la distribucion recomendada</p>
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+        <select id="forecastStyle" onchange="updateForecast()" style="padding:0.5rem 1rem;background:#1e1e2a;border:1px solid rgba(196,205,212,0.2);border-radius:8px;color:#fff;font-family:'Outfit';font-size:0.85rem;min-width:180px;"></select>
+        <select id="forecastMoq" onchange="updateForecast()" style="padding:0.5rem 1rem;background:#1e1e2a;border:1px solid rgba(196,205,212,0.2);border-radius:8px;color:#fff;font-family:'Outfit';font-size:0.85rem;">
+          <option value="50">MOQ 50 uds</option>
+          <option value="100" selected>MOQ 100 uds</option>
+          <option value="200">MOQ 200 uds</option>
+          <option value="300">MOQ 300 uds</option>
+          <option value="500">MOQ 500 uds</option>
+        </select>
+        <select id="forecastColors" onchange="updateForecast()" style="padding:0.5rem 1rem;background:#1e1e2a;border:1px solid rgba(196,205,212,0.2);border-radius:8px;color:#fff;font-family:'Outfit';font-size:0.85rem;">
+          <option value="3">3 colores</option>
+          <option value="5" selected>5 colores</option>
+        </select>
+      </div>
+      <div id="forecastResult"></div>
     </div>
 
     <!-- Tabla de datos -->
@@ -707,30 +721,26 @@
       return entries.sort((a,b) => b[1]-a[1])[0];
     }
 
+    // Forecast data (stored globally for interactive updates)
+    let forecastData = { topTypes: [], sizePcts: {}, colorPcts: {}, topColors: [], total: 0 };
+
     function renderForecast(data) {
-      const container = document.getElementById('forecastTable');
       if (data.length < 2) {
-        container.innerHTML = '<p style="color:rgba(234,232,228,0.3);font-size:0.8rem;">Se necesitan mas respuestas para generar pronostico.</p>';
+        document.getElementById('forecastResult').innerHTML = '<p style="color:rgba(234,232,228,0.3);font-size:0.8rem;">Se necesitan mas respuestas.</p>';
         return;
       }
 
-      const MOQs = [50, 100, 200];
       const total = data.length;
 
-      // Contar tipos de pijama
+      // Tipos
       const typeCounts = {};
       data.forEach(d => {
         if (!d.pajama_type) return;
-        d.pajama_type.split(',').forEach(t => {
-          const name = t.trim();
-          if (name) typeCounts[name] = (typeCounts[name] || 0) + 1;
-        });
+        d.pajama_type.split(',').forEach(t => { const name = t.trim(); if (name) typeCounts[name] = (typeCounts[name] || 0) + 1; });
       });
-
-      // Top 5 estilos
       const topTypes = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
-      // Distribucion de tallas global
+      // Tallas
       const sizeCounts = {};
       const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
       data.forEach(d => { if (d.size) sizeCounts[d.size] = (sizeCounts[d.size] || 0) + 1; });
@@ -738,79 +748,91 @@
       const sizePcts = {};
       sizeOrder.forEach(s => { sizePcts[s] = totalSizes > 0 ? (sizeCounts[s] || 0) / totalSizes : 0; });
 
-      // Distribucion de colores global
+      // Colores
       const colorCounts = {};
       data.forEach(d => { if (d.colors) d.colors.forEach(c => { colorCounts[c] = (colorCounts[c] || 0) + 1; }); });
-      const totalColorSelections = Object.values(colorCounts).reduce((s, v) => s + v, 0);
       const topColors = Object.entries(colorCounts).sort((a,b) => b[1]-a[1]);
+      const totalColorSel = topColors.reduce((s, [,v]) => s + v, 0);
       const colorPcts = {};
-      topColors.forEach(([c, count]) => { colorPcts[c] = totalColorSelections > 0 ? count / totalColorSelections : 0; });
+      topColors.forEach(([c, count]) => { colorPcts[c] = totalColorSel > 0 ? count / totalColorSel : 0; });
 
-      let html = '';
+      // Store globally
+      forecastData = { topTypes, sizePcts, colorPcts, topColors, total };
 
-      // Una tabla por cada estilo top
-      topTypes.forEach(([styleName, styleCount], idx) => {
-        const stylePct = Math.round((styleCount / data.length) * 100);
-        html += `<div style="margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(196,205,212,0.08);">`;
-        html += `<h4 style="font-size:0.9rem;color:rgba(255,255,255,0.85);margin-bottom:0.25rem;"><span style="color:#4fc3f7;font-weight:600;">#${idx+1}</span> ${styleName} <span style="color:rgba(234,232,228,0.4);font-weight:300;">(${stylePct}% demanda)</span></h4>`;
+      // Populate style dropdown
+      const styleSelect = document.getElementById('forecastStyle');
+      styleSelect.innerHTML = topTypes.map(([name, count], i) => {
+        const pct = Math.round((count / total) * 100);
+        return `<option value="${i}">#${i+1} ${name} (${pct}%)</option>`;
+      }).join('');
 
-        // Tabla tallas por MOQ
-        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.5rem 0 0.3rem;">Distribucion por talla:</p>';
-        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
-        sizeOrder.forEach(s => { html += `<th>${s}</th>`; });
-        html += '<th>Total</th></tr></thead><tbody>';
-        MOQs.forEach(moq => {
-          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
-          let rowTotal = 0;
-          sizeOrder.forEach(s => {
-            const units = Math.max(1, Math.round(moq * sizePcts[s]));
-            rowTotal += units;
-            html += `<td>${units}</td>`;
-          });
-          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
-        });
-        html += '</tbody></table>';
+      updateForecast();
+    }
 
-        // Tabla colores por MOQ — top 3
-        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color (top 3):</p>';
-        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
-        topColors.slice(0, 3).forEach(([c]) => { html += `<th>${c}</th>`; });
-        html += '<th>Total</th></tr></thead><tbody>';
-        MOQs.forEach(moq => {
-          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
-          let rowTotal = 0;
-          topColors.slice(0, 3).forEach(([c]) => {
-            const units = Math.max(1, Math.round(moq * (colorPcts[c] / topColors.slice(0,3).reduce((s,[k]) => s + colorPcts[k], 0))));
-            rowTotal += units;
-            html += `<td>${units}</td>`;
-          });
-          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
-        });
-        html += '</tbody></table>';
+    function updateForecast() {
+      const { topTypes, sizePcts, colorPcts, topColors, total } = forecastData;
+      if (topTypes.length === 0) return;
 
-        // Tabla colores por MOQ — top 5
-        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color (top 5):</p>';
-        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
-        topColors.slice(0, 5).forEach(([c]) => { html += `<th>${c}</th>`; });
-        html += '<th>Total</th></tr></thead><tbody>';
-        MOQs.forEach(moq => {
-          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
-          let rowTotal = 0;
-          topColors.slice(0, 5).forEach(([c]) => {
-            const units = Math.max(1, Math.round(moq * (colorPcts[c] / topColors.slice(0,5).reduce((s,[k]) => s + colorPcts[k], 0))));
-            rowTotal += units;
-            html += `<td>${units}</td>`;
-          });
-          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
-        });
-        html += '</tbody></table>';
+      const styleIdx = parseInt(document.getElementById('forecastStyle').value) || 0;
+      const moq = parseInt(document.getElementById('forecastMoq').value) || 100;
+      const numColors = parseInt(document.getElementById('forecastColors').value) || 5;
+      const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
 
-        html += '</div>';
+      const [styleName, styleCount] = topTypes[styleIdx];
+      const stylePct = Math.round((styleCount / total) * 100);
+
+      // Distribute sizes
+      const sizeDistrib = {};
+      let sizeTotal = 0;
+      sizeOrder.forEach(s => { sizeDistrib[s] = Math.max(1, Math.round(moq * sizePcts[s])); sizeTotal += sizeDistrib[s]; });
+      // Adjust to hit MOQ exactly
+      const sizeDiff = moq - sizeTotal;
+      if (sizeDiff !== 0) { const maxSize = sizeOrder.reduce((a, b) => sizePcts[a] > sizePcts[b] ? a : b); sizeDistrib[maxSize] += sizeDiff; }
+
+      // Distribute colors
+      const selectedColors = topColors.slice(0, numColors);
+      const colorSum = selectedColors.reduce((s, [c]) => s + colorPcts[c], 0);
+      const colorDistrib = {};
+      let colorTotal = 0;
+      selectedColors.forEach(([c]) => { colorDistrib[c] = Math.max(1, Math.round(moq * (colorPcts[c] / colorSum))); colorTotal += colorDistrib[c]; });
+      const colorDiff = moq - colorTotal;
+      if (colorDiff !== 0 && selectedColors.length > 0) { colorDistrib[selectedColors[0][0]] += colorDiff; }
+
+      // Render result card
+      let html = `<div style="background:rgba(196,205,212,0.03);border:1px solid rgba(196,205,212,0.1);border-radius:12px;padding:1.5rem;">`;
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">`;
+      html += `<h3 style="font-size:1.1rem;color:#fff;font-weight:500;">${styleName}</h3>`;
+      html += `<span style="background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);padding:0.3rem 0.8rem;border-radius:20px;font-size:0.75rem;color:#4fc3f7;">${moq} unidades</span>`;
+      html += `</div>`;
+
+      // Tallas visual
+      html += `<p style="font-size:0.7rem;color:rgba(234,232,228,0.5);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">Tallas</p>`;
+      html += `<div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;flex-wrap:wrap;">`;
+      sizeOrder.forEach(s => {
+        const pct = Math.round(sizePcts[s] * 100);
+        html += `<div style="background:#1e1e2a;border:1px solid rgba(196,205,212,0.12);border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:60px;">`;
+        html += `<div style="font-size:1.1rem;font-weight:600;color:#fff;">${sizeDistrib[s]}</div>`;
+        html += `<div style="font-size:0.7rem;color:rgba(234,232,228,0.5);">${s} (${pct}%)</div>`;
+        html += `</div>`;
       });
+      html += `</div>`;
 
-      html += '<p style="font-size:0.65rem;color:rgba(234,232,228,0.3);">* MOQ = Minimum Order Quantity. Distribucion proporcional basada en ' + total + ' respuestas. Redondeo puede variar +/- 1-2 uds.</p>';
+      // Colores visual
+      html += `<p style="font-size:0.7rem;color:rgba(234,232,228,0.5);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">Colores (${numColors})</p>`;
+      html += `<div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">`;
+      selectedColors.forEach(([c]) => {
+        const pctC = Math.round((colorPcts[c] / colorSum) * 100);
+        html += `<div style="background:#1e1e2a;border:1px solid rgba(196,205,212,0.12);border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:70px;">`;
+        html += `<div style="font-size:1.1rem;font-weight:600;color:#fff;">${colorDistrib[c]}</div>`;
+        html += `<div style="font-size:0.65rem;color:rgba(234,232,228,0.5);">${c} (${pctC}%)</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
 
-      container.innerHTML = html;
+      html += `<p style="font-size:0.6rem;color:rgba(234,232,228,0.25);margin-top:0.5rem;">Basado en ${total} respuestas | Demanda del estilo: ${stylePct}%</p>`;
+      html += `</div>`;
+
+      document.getElementById('forecastResult').innerHTML = html;
     }
 
     function renderDataTable(data) {
