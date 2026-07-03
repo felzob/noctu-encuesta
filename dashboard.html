@@ -310,7 +310,8 @@
   <script>
     const SUPABASE_URL = 'https://jxhynrdiiunszwfgxzgy.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aHlucmRpaXVuc3p3Zmd4emd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MDU3OTIsImV4cCI6MjA5ODE4MTc5Mn0.xu2NvAiJhfgj2trxJRGjXvodjp80jZQtgZDUR6ayqw8';
-    const VALID_PASSWORD = 'Noctu2026';
+    // La password ya NO se compara en el cliente. La valida el servidor
+    // (Edge Function dashboard_data) contra la variable de entorno DASHBOARD_PASSWORD.
 
     // Chart.js global config
     Chart.defaults.color = 'rgba(234,232,228,0.5)';
@@ -324,11 +325,15 @@
 
     let charts = {};
     let refreshInterval = null;
+    let sessionPassword = ''; // se guarda solo en memoria (no persistente) para autenticar cada fetch a la Edge Function
 
-    // Login
-    function tryLogin() {
+    // Login — la password se valida server-side en la Edge Function dashboard_data,
+    // no hay comparacion de password en el cliente.
+    async function tryLogin() {
       const pass = document.getElementById('passInput').value;
-      if (pass === VALID_PASSWORD) {
+      const ok = await fetchViaEdge('survey_responses', pass);
+      if (ok) {
+        sessionPassword = pass;
         sessionStorage.setItem('noctu-dash-auth', 'true');
         showDashboard();
       } else {
@@ -341,6 +346,7 @@
 
     function logout() {
       sessionStorage.removeItem('noctu-dash-auth');
+      sessionPassword = '';
       location.reload();
     }
 
@@ -350,7 +356,10 @@
       fetchData();
     }
 
-    if (sessionStorage.getItem('noctu-dash-auth') === 'true') {
+    // Nota: al recargar la pagina, sessionPassword se pierde (por diseno, no persiste
+    // en sessionStorage). Si el flag de auth esta pero no hay password en memoria,
+    // se le vuelve a pedir login para poder autenticar contra la Edge Function.
+    if (sessionStorage.getItem('noctu-dash-auth') === 'true' && sessionPassword) {
       showDashboard();
     }
 
@@ -361,19 +370,28 @@
 
     let lastData = [];
 
-    async function fetchData() {
+    async function fetchViaEdge(table, passwordOverride) {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=*&order=created_at.desc`, {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/dashboard_data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          body: JSON.stringify({ password: passwordOverride || sessionPassword, table })
         });
-        const data = await res.json();
-        if (!Array.isArray(data)) return;
-        lastData = data;
-        renderDashboard(data);
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-CL');
+        if (!res.ok) return table === 'survey_responses' && passwordOverride ? false : null;
+        const json = await res.json();
+        return passwordOverride ? true : (json.data || []);
       } catch (e) {
-        console.error('Fetch error:', e);
+        console.error('Edge fetch error:', e);
+        return passwordOverride ? false : null;
       }
+    }
+
+    async function fetchData() {
+      const data = await fetchViaEdge('survey_responses');
+      if (!Array.isArray(data)) return;
+      lastData = data;
+      renderDashboard(data);
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-CL');
     }
 
     function renderDashboard(data) {
@@ -913,27 +931,20 @@
       }
       container.style.display = 'block';
       container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.8rem;">Cargando waitlist...</p>';
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist?select=*&order=created_at.desc`, {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-        });
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-          container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.8rem;">No hay correos en la waitlist.</p>';
-          waitlistVisible = true;
-          return;
-        }
-        let html = '<h4 style="font-size:0.75rem;color:#66bb6a;margin-bottom:0.5rem;">WAITLIST LANDING (' + data.length + ' correos)</h4>';
-        html += '<table class="data-table"><thead><tr><th>Email</th><th>Fecha registro</th></tr></thead><tbody>';
-        data.forEach(d => {
-          const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-          html += `<tr><td>${d.email || '-'}</td><td>${fecha}</td></tr>`;
-        });
-        html += '</tbody></table>';
-        container.innerHTML = html;
-      } catch (e) {
-        container.innerHTML = '<p style="color:#e57373;font-size:0.8rem;">Error al cargar waitlist.</p>';
+      const data = await fetchViaEdge('waitlist');
+      if (!Array.isArray(data) || data.length === 0) {
+        container.innerHTML = '<p style="color:rgba(234,232,228,0.4);font-size:0.8rem;">No hay correos en la waitlist.</p>';
+        waitlistVisible = true;
+        return;
       }
+      let html = '<h4 style="font-size:0.75rem;color:#66bb6a;margin-bottom:0.5rem;">WAITLIST LANDING (' + data.length + ' correos)</h4>';
+      html += '<table class="data-table"><thead><tr><th>Email</th><th>Fecha registro</th></tr></thead><tbody>';
+      data.forEach(d => {
+        const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+        html += `<tr><td>${d.email || '-'}</td><td>${fecha}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
       waitlistVisible = true;
     }
 
