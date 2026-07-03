@@ -714,10 +714,10 @@
         return;
       }
 
-      const BATCH = 100; // base de produccion
+      const MOQs = [50, 100, 200];
       const total = data.length;
 
-      // Contar tipos de pijama (pueden ser multiples por persona)
+      // Contar tipos de pijama
       const typeCounts = {};
       data.forEach(d => {
         if (!d.pajama_type) return;
@@ -729,48 +729,69 @@
 
       // Top 5 estilos
       const topTypes = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
-      const totalTypeSelections = topTypes.reduce((s, t) => s + t[1], 0);
 
       // Distribucion de tallas global
       const sizeCounts = {};
       const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
       data.forEach(d => { if (d.size) sizeCounts[d.size] = (sizeCounts[d.size] || 0) + 1; });
       const totalSizes = Object.values(sizeCounts).reduce((s, v) => s + v, 0);
-
-      // Calcular % de cada talla
       const sizePcts = {};
       sizeOrder.forEach(s => { sizePcts[s] = totalSizes > 0 ? (sizeCounts[s] || 0) / totalSizes : 0; });
 
-      // Construir tabla
-      let html = '<table class="data-table"><thead><tr><th>#</th><th>Estilo</th><th>Demanda</th><th>Unidades (de ' + BATCH + ')</th>';
-      sizeOrder.forEach(s => { html += `<th>${s}</th>`; });
-      html += '</tr></thead><tbody>';
+      // Distribucion de colores global
+      const colorCounts = {};
+      data.forEach(d => { if (d.colors) d.colors.forEach(c => { colorCounts[c] = (colorCounts[c] || 0) + 1; }); });
+      const totalColorSelections = Object.values(colorCounts).reduce((s, v) => s + v, 0);
+      const topColors = Object.entries(colorCounts).sort((a,b) => b[1]-a[1]);
+      const colorPcts = {};
+      topColors.forEach(([c, count]) => { colorPcts[c] = totalColorSelections > 0 ? count / totalColorSelections : 0; });
 
-      topTypes.forEach(([name, count], i) => {
-        const pct = count / totalTypeSelections;
-        const units = Math.round(pct * BATCH);
-        html += `<tr><td style="color:#4fc3f7;font-weight:600;">${i + 1}</td><td style="color:rgba(255,255,255,0.85);">${name}</td><td>${Math.round(pct * 100)}%</td><td style="color:#66bb6a;font-weight:600;">${units}</td>`;
-        sizeOrder.forEach(s => {
-          const sizeUnits = Math.round(units * sizePcts[s]);
-          html += `<td>${sizeUnits}</td>`;
+      let html = '';
+
+      // Una tabla por cada estilo top
+      topTypes.forEach(([styleName, styleCount], idx) => {
+        const stylePct = Math.round((styleCount / data.length) * 100);
+        html += `<div style="margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(196,205,212,0.08);">`;
+        html += `<h4 style="font-size:0.9rem;color:rgba(255,255,255,0.85);margin-bottom:0.25rem;"><span style="color:#4fc3f7;font-weight:600;">#${idx+1}</span> ${styleName} <span style="color:rgba(234,232,228,0.4);font-weight:300;">(${stylePct}% demanda)</span></h4>`;
+
+        // Tabla tallas por MOQ
+        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.5rem 0 0.3rem;">Distribucion por talla:</p>';
+        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
+        sizeOrder.forEach(s => { html += `<th>${s}</th>`; });
+        html += '<th>Total</th></tr></thead><tbody>';
+        MOQs.forEach(moq => {
+          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
+          let rowTotal = 0;
+          sizeOrder.forEach(s => {
+            const units = Math.max(1, Math.round(moq * sizePcts[s]));
+            rowTotal += units;
+            html += `<td>${units}</td>`;
+          });
+          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
         });
-        html += '</tr>';
+        html += '</tbody></table>';
+
+        // Tabla colores por MOQ
+        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color:</p>';
+        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
+        topColors.slice(0, 5).forEach(([c]) => { html += `<th>${c}</th>`; });
+        html += '<th>Total</th></tr></thead><tbody>';
+        MOQs.forEach(moq => {
+          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
+          let rowTotal = 0;
+          topColors.slice(0, 5).forEach(([c]) => {
+            const units = Math.max(1, Math.round(moq * colorPcts[c]));
+            rowTotal += units;
+            html += `<td>${units}</td>`;
+          });
+          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
+        });
+        html += '</tbody></table>';
+
+        html += '</div>';
       });
 
-      // Totales
-      const totalUnits = topTypes.reduce((s, [, count]) => s + Math.round((count / totalTypeSelections) * BATCH), 0);
-      html += `<tr style="border-top:1px solid rgba(196,205,212,0.15);"><td></td><td style="font-weight:500;color:var(--silver);">TOTAL</td><td>100%</td><td style="font-weight:600;color:#66bb6a;">${totalUnits}</td>`;
-      sizeOrder.forEach(s => {
-        const colTotal = topTypes.reduce((sum, [, count]) => {
-          const units = Math.round((count / totalTypeSelections) * BATCH);
-          return sum + Math.round(units * sizePcts[s]);
-        }, 0);
-        html += `<td style="font-weight:500;">${colTotal}</td>`;
-      });
-      html += '</tr></tbody></table>';
-
-      // Nota
-      html += '<p style="font-size:0.65rem;color:rgba(234,232,228,0.3);margin-top:0.75rem;">* Distribucion proporcional basada en ' + total + ' respuestas. Los numeros se redondean y pueden sumar +/- 1-2 del total.</p>';
+      html += '<p style="font-size:0.65rem;color:rgba(234,232,228,0.3);">* MOQ = Minimum Order Quantity. Distribucion proporcional basada en ' + total + ' respuestas. Redondeo puede variar +/- 1-2 uds.</p>';
 
       container.innerHTML = html;
     }
