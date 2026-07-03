@@ -356,8 +356,13 @@
 
     function renderDashboard(data) {
       const total = data.length;
-      const today = new Date().toISOString().slice(0, 10);
-      const todayCount = data.filter(d => d.created_at?.startsWith(today)).length;
+      const today = new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' }).split('-').reverse().join('-');
+      const todayCount = data.filter(d => {
+        if (!d.created_at) return false;
+        const local = new Date(d.created_at).toLocaleDateString('es-CL', { timeZone: 'America/Santiago' });
+        const todayLocal = new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' });
+        return local === todayLocal;
+      }).length;
       const earlyCount = data.filter(d => d.early_access).length;
       const earlyPct = total > 0 ? Math.round((earlyCount / total) * 100) : 0;
 
@@ -691,7 +696,7 @@
       }
       let html = '<table class="data-table"><thead><tr><th>Email</th><th>Genero</th><th>Edad</th><th>Talla</th><th>Tipo pijama</th><th>Colores</th><th>Acceso</th><th>Fecha</th></tr></thead><tbody>';
       data.forEach(d => {
-        const fecha = d.created_at ? new Date(d.created_at).toLocaleDateString('es-CL') : '-';
+        const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
         const colores = d.colors ? d.colors.join(', ') : '-';
         html += `<tr>
           <td title="${d.email || ''}">${d.email || '-'}</td>
@@ -732,7 +737,7 @@
         let html = '<h4 style="font-size:0.75rem;color:#66bb6a;margin-bottom:0.5rem;">WAITLIST LANDING (' + data.length + ' correos)</h4>';
         html += '<table class="data-table"><thead><tr><th>Email</th><th>Fecha registro</th></tr></thead><tbody>';
         data.forEach(d => {
-          const fecha = d.created_at ? new Date(d.created_at).toLocaleDateString('es-CL') : '-';
+          const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
           html += `<tr><td>${d.email || '-'}</td><td>${fecha}</td></tr>`;
         });
         html += '</tbody></table>';
