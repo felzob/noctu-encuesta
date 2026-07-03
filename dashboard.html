@@ -771,8 +771,25 @@
         });
         html += '</tbody></table>';
 
-        // Tabla colores por MOQ
-        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color:</p>';
+        // Tabla colores por MOQ — top 3
+        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color (top 3):</p>';
+        html += '<table class="data-table"><thead><tr><th>MOQ</th>';
+        topColors.slice(0, 3).forEach(([c]) => { html += `<th>${c}</th>`; });
+        html += '<th>Total</th></tr></thead><tbody>';
+        MOQs.forEach(moq => {
+          html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
+          let rowTotal = 0;
+          topColors.slice(0, 3).forEach(([c]) => {
+            const units = Math.max(1, Math.round(moq * (colorPcts[c] / topColors.slice(0,3).reduce((s,[k]) => s + colorPcts[k], 0))));
+            rowTotal += units;
+            html += `<td>${units}</td>`;
+          });
+          html += `<td style="font-weight:500;color:#66bb6a;">${rowTotal}</td></tr>`;
+        });
+        html += '</tbody></table>';
+
+        // Tabla colores por MOQ — top 5
+        html += '<p style="font-size:0.7rem;color:rgba(234,232,228,0.4);margin:0.75rem 0 0.3rem;">Distribucion por color (top 5):</p>';
         html += '<table class="data-table"><thead><tr><th>MOQ</th>';
         topColors.slice(0, 5).forEach(([c]) => { html += `<th>${c}</th>`; });
         html += '<th>Total</th></tr></thead><tbody>';
@@ -780,7 +797,7 @@
           html += `<tr><td style="color:#4fc3f7;font-weight:500;">${moq} uds</td>`;
           let rowTotal = 0;
           topColors.slice(0, 5).forEach(([c]) => {
-            const units = Math.max(1, Math.round(moq * colorPcts[c]));
+            const units = Math.max(1, Math.round(moq * (colorPcts[c] / topColors.slice(0,5).reduce((s,[k]) => s + colorPcts[k], 0))));
             rowTotal += units;
             html += `<td>${units}</td>`;
           });
