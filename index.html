@@ -247,9 +247,10 @@
         <input type="checkbox" id="earlyAccess" name="earlyAccess">
         <label for="earlyAccess">Si, quiero acceso anticipado</label>
       </div>
+      <p class="error-msg" id="submitError">No se pudo enviar tu respuesta. Por favor intenta de nuevo.</p>
       <div class="nav-buttons">
         <button class="btn-back" onclick="prevPage()">Atras</button>
-        <button class="btn-forward" onclick="submitSurvey()">Enviar</button>
+        <button class="btn-forward" id="btnSubmit" onclick="submitSurvey()">Enviar</button>
       </div>
     </div>
 
@@ -374,6 +375,10 @@
     }
 
     async function submitSurvey() {
+      const errorEl = document.getElementById('submitError');
+      const btn = document.getElementById('btnSubmit');
+      errorEl.classList.remove('show');
+
       const data = {
         email: document.getElementById('emailInput').value,
         gender: document.querySelector('input[name="gender"]:checked')?.value || null,
@@ -384,15 +389,26 @@
         pajama_type: Array.from(document.querySelectorAll('input[name="type"]:checked')).map(c => c.value).join(', '),
         early_access: document.getElementById('earlyAccess').checked
       };
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/survey_responses`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
           body: JSON.stringify(data)
         });
-      } catch (e) { console.error('Error:', e); }
-      currentPage = totalPages - 1;
-      showPage(currentPage);
+        if (!res.ok) throw new Error('Submit failed: ' + res.status);
+
+        currentPage = totalPages - 1;
+        showPage(currentPage);
+      } catch (e) {
+        console.error('Error al enviar:', e);
+        errorEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Enviar';
+      }
     }
 
     document.getElementById('emailInput').addEventListener('keydown', (e) => {

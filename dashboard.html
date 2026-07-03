@@ -241,7 +241,6 @@
     <div class="charts-grid">
       <div class="chart-card"><h3>Género</h3><canvas id="chartGender"></canvas></div>
       <div class="chart-card"><h3>Rango de edad</h3><canvas id="chartAge"></canvas></div>
-      <div class="chart-card"><h3>Estilo preferido</h3><canvas id="chartStyle"></canvas></div>
       <div class="chart-card"><h3>Colores preferidos</h3><canvas id="chartColors"></canvas></div>
       <div class="chart-card"><h3>Talla</h3><canvas id="chartSize"></canvas></div>
       <div class="chart-card"><h3>Tipo de pijama</h3><canvas id="chartType"></canvas></div>
@@ -428,7 +427,6 @@
       // Count fields
       const genderCounts = countField(data, 'gender');
       const ageCounts = countField(data, 'age_range');
-      const styleCounts = countField(data, 'style');
       const sizeCounts = countField(data, 'size');
       const typeCounts = countField(data, 'pajama_type');
       const colorCounts = countColors(data);
@@ -436,14 +434,13 @@
       // Render charts
       renderDoughnut('chartGender', genderCounts);
       renderBar('chartAge', ageCounts, 'Personas');
-      renderBar('chartStyle', styleCounts, 'Personas');
       renderHorizontalBar('chartColors', colorCounts, 'Selecciones');
       renderDoughnut('chartSize', sizeCounts);
       renderBar('chartType', typeCounts, 'Personas');
       renderTimeline('chartTimeline', data);
 
       // Insights
-      renderInsights(data, genderCounts, ageCounts, styleCounts, colorCounts, sizeCounts, typeCounts);
+      renderInsights(data, genderCounts, ageCounts, colorCounts, sizeCounts, typeCounts);
 
       // Combos
       renderCombos(data);
@@ -628,7 +625,7 @@
       });
     }
 
-    function renderInsights(data, gender, age, style, colors, size, type) {
+    function renderInsights(data, gender, age, colors, size, type) {
       const total = data.length;
       if (total === 0) {
         document.getElementById('insightsGrid').innerHTML = '<div class="insight-card"><h4>Sin datos</h4><div class="insight-value">Esperando respuestas...</div></div>';
@@ -637,7 +634,6 @@
 
       const topGender = topEntry(gender);
       const topAge = topEntry(age);
-      const topStyle = topEntry(style);
       const topColor = topEntry(colors);
       const topSize = topEntry(size);
       const topType = topEntry(type);
@@ -649,21 +645,20 @@
         ? `${Math.round(maleCount/total*100)}% M / ${Math.round(femaleCount/total*100)}% F`
         : topGender ? `${Math.round(topGender[1]/total*100)}% ${topGender[0]}` : '-';
 
-      // Most popular combo (style + color)
-      const styleColorCombo = {};
+      // Most popular combo (tipo pijama + color)
+      const typeColorCombo = {};
       data.forEach(d => {
-        if (d.style && d.colors) {
+        if (d.pajama_type && d.colors) {
           d.colors.forEach(c => {
-            const key = `${d.style} + ${c}`;
-            styleColorCombo[key] = (styleColorCombo[key] || 0) + 1;
+            const key = `${d.pajama_type} + ${c}`;
+            typeColorCombo[key] = (typeColorCombo[key] || 0) + 1;
           });
         }
       });
-      const topCombo = topEntry(styleColorCombo);
+      const topCombo = topEntry(typeColorCombo);
 
       const insights = [
         { title: 'Perfil dominante', value: `${topGender?topGender[0]:'-'}, ${topAge?topAge[0]:'-'} años`, detail: genderRatio },
-        { title: 'Estilo líder', value: topStyle ? topStyle[0] : '-', detail: topStyle ? `${Math.round(topStyle[1]/total*100)}% de las respuestas` : '' },
         { title: 'Color más elegido', value: topColor ? topColor[0] : '-', detail: topColor ? `${topColor[1]} selecciones` : '' },
         { title: 'Talla más común', value: topSize ? topSize[0] : '-', detail: topSize ? `${Math.round(topSize[1]/total*100)}% eligen esta talla` : '' },
         { title: 'Tipo preferido', value: topType ? topType[0] : '-', detail: topType ? `${Math.round(topType[1]/total*100)}% prefiere este corte` : '' },
@@ -685,17 +680,17 @@
         return;
       }
 
-      // Style + Size combo
-      const styleSizeCombos = {};
+      // Tipo de pijama + Talla combo
+      const typeSizeCombos = {};
       data.forEach(d => {
-        if (d.style && d.size) {
-          const key = `${d.style} / Talla ${d.size}`;
-          styleSizeCombos[key] = (styleSizeCombos[key] || 0) + 1;
+        if (d.pajama_type && d.size) {
+          const key = `${d.pajama_type} / Talla ${d.size}`;
+          typeSizeCombos[key] = (typeSizeCombos[key] || 0) + 1;
         }
       });
-      const topStyleSize = Object.entries(styleSizeCombos).sort((a,b) => b[1]-a[1]).slice(0, 5);
+      const topTypeSize = Object.entries(typeSizeCombos).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
-      // Color + Type combo
+      // Color + Tipo de pijama
       const colorTypeCombos = {};
       data.forEach(d => {
         if (d.pajama_type && d.colors) {
@@ -707,28 +702,28 @@
       });
       const topColorType = Object.entries(colorTypeCombos).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
-      // Age + Style
-      const ageStyleCombos = {};
+      // Edad + Tipo de pijama
+      const ageTypeCombos = {};
       data.forEach(d => {
-        if (d.age_range && d.style) {
-          const key = `${d.age_range} → ${d.style}`;
-          ageStyleCombos[key] = (ageStyleCombos[key] || 0) + 1;
+        if (d.age_range && d.pajama_type) {
+          const key = `${d.age_range} → ${d.pajama_type}`;
+          ageTypeCombos[key] = (ageTypeCombos[key] || 0) + 1;
         }
       });
-      const topAgeStyle = Object.entries(ageStyleCombos).sort((a,b) => b[1]-a[1]).slice(0, 5);
+      const topAgeType = Object.entries(ageTypeCombos).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
       document.getElementById('combosGrid').innerHTML = `
         <div class="insight-card">
-          <h4>Estilo + Talla</h4>
-          ${topStyleSize.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${k} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
+          <h4>Tipo de pijama + Talla</h4>
+          ${topTypeSize.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${escapeHTML(k)} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
         </div>
         <div class="insight-card">
           <h4>Color + Tipo de pijama</h4>
-          ${topColorType.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${k} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
+          ${topColorType.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${escapeHTML(k)} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
         </div>
         <div class="insight-card">
-          <h4>Edad → Estilo preferido</h4>
-          ${topAgeStyle.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${k} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
+          <h4>Edad → Tipo de pijama preferido</h4>
+          ${topAgeType.map(([k,v]) => `<div class="insight-detail" style="margin-bottom:0.3rem;">• ${escapeHTML(k)} <span style="color:var(--silver)">(${v})</span></div>`).join('')}
         </div>
       `;
     }
@@ -895,6 +890,17 @@
       document.getElementById('forecastResult').innerHTML = html;
     }
 
+    // Escapa HTML para prevenir XSS cuando se inserta texto de usuario (ej: email) en innerHTML
+    function escapeHTML(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function renderDataTable(data) {
       const container = document.getElementById('dataTable');
       if (data.length === 0) {
@@ -906,12 +912,12 @@
         const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
         const colores = d.colors ? d.colors.join(', ') : '-';
         html += `<tr>
-          <td title="${d.email || ''}">${d.email || '-'}</td>
-          <td>${d.gender || '-'}</td>
-          <td>${d.age_range || '-'}</td>
-          <td>${d.size || '-'}</td>
-          <td title="${d.pajama_type || ''}">${d.pajama_type || '-'}</td>
-          <td title="${colores}">${colores}</td>
+          <td title="${escapeHTML(d.email)}">${escapeHTML(d.email) || '-'}</td>
+          <td>${escapeHTML(d.gender) || '-'}</td>
+          <td>${escapeHTML(d.age_range) || '-'}</td>
+          <td>${escapeHTML(d.size) || '-'}</td>
+          <td title="${escapeHTML(d.pajama_type)}">${escapeHTML(d.pajama_type) || '-'}</td>
+          <td title="${escapeHTML(colores)}">${escapeHTML(colores)}</td>
           <td>${d.early_access ? 'Si' : 'No'}</td>
           <td>${fecha}</td>
         </tr>`;
@@ -941,7 +947,7 @@
       html += '<table class="data-table"><thead><tr><th>Email</th><th>Fecha registro</th></tr></thead><tbody>';
       data.forEach(d => {
         const fecha = d.created_at ? new Date(d.created_at).toLocaleString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-        html += `<tr><td>${d.email || '-'}</td><td>${fecha}</td></tr>`;
+        html += `<tr><td>${escapeHTML(d.email) || '-'}</td><td>${fecha}</td></tr>`;
       });
       html += '</tbody></table>';
       container.innerHTML = html;
