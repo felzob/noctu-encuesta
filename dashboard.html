@@ -265,6 +265,13 @@
       <div id="correlationMatrix"></div>
     </div>
 
+    <!-- Pronostico de produccion -->
+    <h2 class="section-title">🏭 Pronostico de produccion (base 100 unidades)</h2>
+    <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
+      <p style="font-size:0.7rem;color:rgba(234,232,228,0.35);margin-bottom:1rem;">Top 5 estilos mas seleccionados con distribucion de tallas proporcional a las respuestas</p>
+      <div id="forecastTable"></div>
+    </div>
+
     <!-- Tabla de datos -->
     <h2 class="section-title">📋 Tabla de respuestas</h2>
     <div class="chart-card" style="margin-bottom:2rem; overflow-x:auto;">
@@ -414,6 +421,9 @@
 
       // Trend insights (natural language)
       renderTrendInsights(data);
+
+      // Production forecast
+      renderForecast(data);
 
       // Data table
       renderDataTable(data);
@@ -695,6 +705,74 @@
       const entries = Object.entries(obj);
       if (entries.length === 0) return null;
       return entries.sort((a,b) => b[1]-a[1])[0];
+    }
+
+    function renderForecast(data) {
+      const container = document.getElementById('forecastTable');
+      if (data.length < 2) {
+        container.innerHTML = '<p style="color:rgba(234,232,228,0.3);font-size:0.8rem;">Se necesitan mas respuestas para generar pronostico.</p>';
+        return;
+      }
+
+      const BATCH = 100; // base de produccion
+      const total = data.length;
+
+      // Contar tipos de pijama (pueden ser multiples por persona)
+      const typeCounts = {};
+      data.forEach(d => {
+        if (!d.pajama_type) return;
+        d.pajama_type.split(',').forEach(t => {
+          const name = t.trim();
+          if (name) typeCounts[name] = (typeCounts[name] || 0) + 1;
+        });
+      });
+
+      // Top 5 estilos
+      const topTypes = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+      const totalTypeSelections = topTypes.reduce((s, t) => s + t[1], 0);
+
+      // Distribucion de tallas global
+      const sizeCounts = {};
+      const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
+      data.forEach(d => { if (d.size) sizeCounts[d.size] = (sizeCounts[d.size] || 0) + 1; });
+      const totalSizes = Object.values(sizeCounts).reduce((s, v) => s + v, 0);
+
+      // Calcular % de cada talla
+      const sizePcts = {};
+      sizeOrder.forEach(s => { sizePcts[s] = totalSizes > 0 ? (sizeCounts[s] || 0) / totalSizes : 0; });
+
+      // Construir tabla
+      let html = '<table class="data-table"><thead><tr><th>#</th><th>Estilo</th><th>Demanda</th><th>Unidades (de ' + BATCH + ')</th>';
+      sizeOrder.forEach(s => { html += `<th>${s}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      topTypes.forEach(([name, count], i) => {
+        const pct = count / totalTypeSelections;
+        const units = Math.round(pct * BATCH);
+        html += `<tr><td style="color:#4fc3f7;font-weight:600;">${i + 1}</td><td style="color:rgba(255,255,255,0.85);">${name}</td><td>${Math.round(pct * 100)}%</td><td style="color:#66bb6a;font-weight:600;">${units}</td>`;
+        sizeOrder.forEach(s => {
+          const sizeUnits = Math.round(units * sizePcts[s]);
+          html += `<td>${sizeUnits}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      // Totales
+      const totalUnits = topTypes.reduce((s, [, count]) => s + Math.round((count / totalTypeSelections) * BATCH), 0);
+      html += `<tr style="border-top:1px solid rgba(196,205,212,0.15);"><td></td><td style="font-weight:500;color:var(--silver);">TOTAL</td><td>100%</td><td style="font-weight:600;color:#66bb6a;">${totalUnits}</td>`;
+      sizeOrder.forEach(s => {
+        const colTotal = topTypes.reduce((sum, [, count]) => {
+          const units = Math.round((count / totalTypeSelections) * BATCH);
+          return sum + Math.round(units * sizePcts[s]);
+        }, 0);
+        html += `<td style="font-weight:500;">${colTotal}</td>`;
+      });
+      html += '</tr></tbody></table>';
+
+      // Nota
+      html += '<p style="font-size:0.65rem;color:rgba(234,232,228,0.3);margin-top:0.75rem;">* Distribucion proporcional basada en ' + total + ' respuestas. Los numeros se redondean y pueden sumar +/- 1-2 del total.</p>';
+
+      container.innerHTML = html;
     }
 
     function renderDataTable(data) {
