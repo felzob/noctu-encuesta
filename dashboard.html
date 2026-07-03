@@ -518,11 +518,11 @@
 
     function renderTimeline(canvasId, data) {
       const ctx = document.getElementById(canvasId);
-      // Group by date
+      // Group by date (Chile timezone)
       const dateMap = {};
       data.forEach(d => {
         if (!d.created_at) return;
-        const date = d.created_at.slice(0, 10);
+        const date = new Date(d.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
         dateMap[date] = (dateMap[date] || 0) + 1;
       });
 
